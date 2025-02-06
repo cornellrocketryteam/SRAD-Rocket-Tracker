@@ -55,8 +55,6 @@ target_include_directories(SRAD_RT PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
-add_subdirectory(Protothreads)
-
 # Add any user requested libraries
 target_link_libraries(SRAD_RT 
         pico_stdlib

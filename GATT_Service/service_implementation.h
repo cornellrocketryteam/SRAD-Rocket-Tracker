@@ -4,6 +4,7 @@
 #include "btstack_util.h"
 #include "bluetooth_gatt.h"
 #include "btstack_debug.h"
+#include "hardware/sync.h"
 
 #include "SRAD_RT_db.h"
 #include <pt_cornell_rp2040_v1_3.h>
@@ -83,7 +84,7 @@ char characteristic_SV[] = "SV State" ;
 char characteristic_FM[] = "Flightmode" ;
 
 // Protothreads semaphore
-struct pt_sem BLUETOOTH_READY ;
+static struct pt_sem BLUETOOTH_READY;
 
 // Callback functions for ATT notifications on characteristics
 static void latitude_callback(void * context){
@@ -247,4 +248,104 @@ void custom_service_server_init(int32_t * lat_ptr, int32_t * long_ptr, float * P
     instance->SV_CD_handle=ATT_CHARACTERISTIC_00000007_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
     instance->Flightmode_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
     instance->Flightmode_CD_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
+
+    // Service Start and End Handles
+    service_handler.start_handle = ATT_SERVICE_00000001_0000_0715_2006_853A52A41A44_START_HANDLE;
+    service_handler.end_handle = ATT_SERVICE_00000001_0000_0715_2006_853A52A41A44_END_HANDLE;
+    service_handler.read_callback = &custom_service_read_callback;
+
+    // Register the service handler
+    att_server_register_service_handler(&service_handler);
     }
+
+// Update Latitude Characteristic Value
+void set_latitude_value(int32_t value) {
+    // Pointer to our service object
+    GATT_DB * instance = &service_object;
+
+    // Update field value
+    *(instance->latitude_value) = value;
+
+    // Register a callback for sending notifications
+    instance->callback_lat.callback = &latitude_callback;
+    instance->callback_lat.context  = (void*) instance;
+    att_server_register_can_send_now_callback(&instance->callback_lat, instance->con_handle);
+}
+// Update Longitude Characteristic Value
+void set_longitude_value(int32_t value) {
+    // Pointer to our service object
+    GATT_DB * instance = &service_object;
+
+    // Update field value
+    *(instance->longitude_value) = value;
+
+    // Register a callback for sending notifications
+    instance->callback_long.callback = &longitude_callback;
+    instance->callback_long.context  = (void*) instance;
+    att_server_register_can_send_now_callback(&instance->callback_long, instance->con_handle);
+}
+// Update PT3 Characteristic Value
+void set_PT3_value(float value) {
+    // Pointer to our service object
+    GATT_DB * instance = &service_object;
+
+    // Update field value
+    *(instance->PT3_value) = value;
+
+    // Register a callback for sending notifications
+    instance->callback_PT3.callback = &PT3_callback;
+    instance->callback_PT3.context  = (void*) instance;
+    att_server_register_can_send_now_callback(&instance->callback_PT3, instance->con_handle);
+}
+// Update PT4 Characteristic Value
+void set_PT4_value(float value) {
+    // Pointer to our service object
+    GATT_DB * instance = &service_object;
+
+    // Update field value
+    *(instance->PT4_value) = value;
+
+    // Register a callback for sending notifications
+    instance->callback_PT4.callback = &PT4_callback;
+    instance->callback_PT4.context  = (void*) instance;
+    att_server_register_can_send_now_callback(&instance->callback_PT4, instance->con_handle);
+}
+// Update MAV Characteristic Value
+void set_MAV_value(uint8_t value) {
+    // Pointer to our service object
+    GATT_DB * instance = &service_object;
+
+    // Update field value
+    *(instance->MAV_value) = value;
+
+    // Register a callback for sending notifications
+    instance->callback_MAV.callback = &MAV_callback;
+    instance->callback_MAV.context  = (void*) instance;
+    att_server_register_can_send_now_callback(&instance->callback_MAV, instance->con_handle);
+}
+// Update SV Characteristic Value
+void set_SV_value(uint8_t value) {
+    // Pointer to our service object
+    GATT_DB * instance = &service_object;
+
+    // Update field value
+    *(instance->SV_value) = value;
+
+    // Register a callback for sending notifications
+    instance->callback_SV.callback = &SV_callback;
+    instance->callback_SV.context  = (void*) instance;
+    att_server_register_can_send_now_callback(&instance->callback_SV, instance->con_handle);
+}
+// Update FM Characteristic Value
+void set_FM_value(uint8_t value) {
+    // Pointer to our service object
+    GATT_DB * instance = &service_object;
+
+    // Update field value
+    *(instance->Flightmode_value) = value;
+
+    // Register a callback for sending notifications
+    instance->callback_FM.callback = &FM_callback;
+    instance->callback_FM.context  = (void*) instance;
+    att_server_register_can_send_now_callback(&instance->callback_FM, instance->con_handle);
+}
