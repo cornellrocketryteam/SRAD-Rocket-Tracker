@@ -55,6 +55,9 @@ target_include_directories(SRAD_RT PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
+include_directories(${PROJECT_SOURCE_DIR}/Protothreads/Protothreads_Demo)
+include_directories(${PROJECT_SOURCE_DIR}/GAP_Advertisment)
+
 # Add any user requested libraries
 target_link_libraries(SRAD_RT 
         pico_stdlib

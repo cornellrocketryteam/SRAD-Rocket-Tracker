@@ -6,7 +6,6 @@
 #include "btstack_debug.h"
 #include "hardware/sync.h"
 
-#include "SRAD_RT_db.h"
 #include <pt_cornell_rp2040_v1_3.h>
 
 // Creating a struct for managning the GPS 
