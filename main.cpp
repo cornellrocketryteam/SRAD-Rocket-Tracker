@@ -84,7 +84,7 @@ int main() {
         set_SV_value(SV);
         set_FM_value(FM);
         sleep_ms(10000);
-        printf("Latitude: %d Longitude: %d PT3: %.5f PT4: %.5f MAV: %d SV: %d FM: %d\n" , lat_val, long_val, PT3, PT4, MAV, SV, FM);
+        printf("Latitude: %d Longitude: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d\n" , lat_val, long_val, PT3, PT4, MAV, SV, FM);
     }
 
 }

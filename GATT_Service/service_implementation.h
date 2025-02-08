@@ -301,7 +301,7 @@ void set_PT3_value(float value){
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->PT3_value, "%.5f", value) ;
+	sprintf(instance->PT3_value, "%.3f", value) ;
 
 	// Register a callback
 	instance->callback_PT3.callback = &characteristic_PT3_callback;
@@ -316,7 +316,7 @@ void set_PT4_value(float value){
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->PT4_value, "%.5f", value) ;
+	sprintf(instance->PT4_value, "%.3f", value) ;
 
 	// Register a callback
 	instance->callback_PT4.callback = &characteristic_PT4_callback;
