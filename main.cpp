@@ -49,37 +49,25 @@
 static btstack_timer_source_t heartbeat;
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 
-int32_t lat_value = 33132860 ; // my home address
-int32_t long_value = -96.883190 ; 
-float PT3_value = 25.6f ;
-float PT4_value = 30.5f ;
-uint8_t MAV_value = 1 ;
-uint8_t SV_value = 0 ;
-uint8_t Flightmode_value = 2;
+// int lat_value = 33132860 ; // my home address
+// int32_t long_value = -96883190 ; 
+// float PT3_value = 25.6f ;
+// float PT4_value = 30.5f ;
+// uint8_t MAV_value = 1 ;
+// uint8_t SV_value = 0 ;
+// uint8_t Flightmode_value = 2;
 
 // Buffers for sending the values as byte arrays
-uint8_t lat_bytes[4];    // 4 bytes for an int32_t
-uint8_t long_bytes[4];   // 4 bytes for an int32_t
-uint8_t PT3_bytes[4];    // 4 bytes for a float
-uint8_t PT4_bytes[4];    // 4 bytes for a float
-uint8_t MAV_bytes[1];    // 1 byte for uint8_t
-uint8_t SV_bytes[1];     // 1 byte for uint8_t
-uint8_t FM_bytes[1];     // 1 byte for uint8_t
+char lat_bytes[100];    // 4 bytes for an int32_t
+char long_bytes[100];   // 4 bytes for an int32_t
+char PT3_bytes[100];    // 4 bytes for a float
+char PT4_bytes[100];    // 4 bytes for a float
+char MAV_bytes[100];    // 1 byte for uint8_t
+char SV_bytes[100];     // 1 byte for uint8_t
+char FM_bytes[100];     // 1 byte for uint8_t
 
-void convert_int32_to_bytes(int32_t value, uint8_t bytes[]) {
-    // Convert lat_value (int32_t) to byte array
-    bytes[0] = (uint8_t) (value & 0xFF);
-    bytes[1] = (uint8_t) ((value >> 8) & 0xFF);
-    bytes[2] = (uint8_t) ((value >> 16) & 0xFF);
-    bytes[3] = (uint8_t) ((value >> 24) & 0xFF);
-}
 
- void convert_PT_to_bytes(float PT, uint8_t bytes[]) {
-    memcpy(bytes, &PT, sizeof(PT));
- }
-
-int main()
-{
+int main() {
     stdio_init_all();
 
     // Initialise the Wi-Fi/BLE chip
@@ -95,12 +83,8 @@ int main()
     // because we'll set one up for each service
     att_server_init(profile_data, NULL, NULL);
     
-    // convert_int32_to_bytes(lat_value, lat_bytes);
-    // convert_int32_to_bytes(long_value, long_bytes);
-    // convert_PT_to_bytes(PT3_value, PT3_bytes);
-    // convert_PT_to_bytes(PT4_value, PT4_bytes);
     // Instantiate our custom service handler
-    custom_service_server_init(&lat_value, &long_value, &PT3_value, &PT4_value, &MAV_value, &SV_value, &Flightmode_value) ;
+    custom_service_server_init(lat_bytes, long_bytes, PT3_bytes, PT4_bytes, MAV_bytes, SV_bytes, FM_bytes) ;
     
     // inform about BTstack state
     hci_event_callback_registration.callback = &packet_handler;
@@ -112,17 +96,27 @@ int main()
     // turn on bluetooth!
     hci_power_control(HCI_POWER_ON);
     
-    // convert_int32_to_bytes(lat_value, lat_bytes);
-    // convert_int32_to_bytes(long_value, long_bytes);
-    // convert_PT_to_bytes(PT3_value, PT3_bytes);
-    // convert_PT_to_bytes(PT4_value, PT4_bytes);
-    // Example to turn on the Pico W LED
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+    int lat_val = 33132860; // in micro degrees 10^-6
+    int long_val = -96883190;
+    float PT3 = 128.6f;
+    float PT4 = 33.689f;
+    bool MAV = 0;
+    bool SV = true;
+    int FM = 3;
+
+    printf("Should have intialized\n");
 
     while (true) {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
-        printf("Should have intialized");
+        sleep_ms(10000);
+        set_latitude_value(lat_val);
+        set_longitude_value(long_val);
+        set_PT3_value(PT3);
+        set_PT4_value(PT4);
+        set_MAV_value(MAV);
+        set_SV_value(SV);
+        set_FM_value(FM);
+        printf("Latitude: %d Longitude: %d PT3: %f PT4: %f MAV: %d SV: %d FM: %d\n" , lat_val, long_val, PT3, PT4, MAV, SV, FM);
     }
 
 }

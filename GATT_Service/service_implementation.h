@@ -8,58 +8,70 @@
 
 #include <pt_cornell_rp2040_v1_3.h>
 
-// Creating a struct for managning the GPS 
+// Create a struct for managing this service
 typedef struct {
 
-    // Connection handle for service
-    hci_con_handle_t con_handle ;
+	// Connection handle for service
+	hci_con_handle_t con_handle ;
 
-    // GPS Information
-    int32_t *latitude_value ;
-    char * latitude_character_description ;
-    int32_t * longitude_value ;
-    char * longitude_character_description ;
+	// Latitiude information
+	char * 		latitude_value ;
+	char * 		latitude_user_description ;
     
-    // PT3 & PT4 Information
-    float * PT3_value ;
-    char * PT3_character_description ;
-    float * PT4_value ;
-    char * PT4_character_description ;
+    // Longitude information
+	char * 		longitude_value ;
+	char * 		longitude_user_description ;
 
-    // MAV & SV Information
-    uint8_t * MAV_value ;
-    char * MAV_character_description ;
-    uint8_t * SV_value ;
-    char * SV_character_description ;
+    // PT3 Information
+    char * 		PT3_value ;
+	char * 		PT3_user_description ;
 
-    // Flightmode
-    uint8_t * Flightmode_value ;
-    char * Flightmode_character_description ;
+    // PT4 Information
+    char * 		PT4_value ;
+	char * 		PT4_user_description ;
 
-    // GPS Handles
-    uint16_t latitude_handle ;
-    uint16_t latitude_CD_handle ;
-    uint16_t longitude_handle ;
-    uint16_t longitude_CD_handle ;
+    // MAV Information
+    char * 		MAV_value ;
+	char * 		MAV_user_description ;
 
-    // PT3 & PT4 Handles
-    uint16_t PT3_handle ;
-    uint16_t PT3_CD_handle ;
-    uint16_t PT4_handle ;
-    uint16_t PT4_CD_handle ;
+    // SV Information
+    char * 		SV_value ;
+	char * 		SV_user_description ;
 
-    // MAV & SV Handles
-    uint16_t MAV_handle ;
-    uint16_t SV_handle ;
-    uint16_t MAV_CD_handle ;
-    uint16_t SV_CD_handle ;
+    // Flightmode Information
+    char * 		FM_value ;
+	char * 		FM_user_description ;
 
-    // Flightmode Handles
-    uint16_t Flightmode_handle ;
-    uint16_t Flightmode_CD_handle ;
+	// Characteristic latitude handles
+	uint16_t  	latitude_handle ;
+	uint16_t 	latitude_user_description_handle ;
 
-    // Callback functions, needed in order for asynchronous notifications
-    btstack_context_callback_registration_t callback_lat ;
+    // Characteristic longitude handles
+	uint16_t  	longitude_handle ;
+	uint16_t 	longitude_user_description_handle ;
+
+    // Characteristic PT3 handles
+	uint16_t  	PT3_handle ;
+	uint16_t 	PT3_user_description_handle ;
+
+    // Characteristic PT4 handles
+	uint16_t  	PT4_handle ;
+	uint16_t 	PT4_user_description_handle ;
+
+    // Characteristic MAV handles
+	uint16_t  	MAV_handle ;
+	uint16_t 	MAV_user_description_handle ;
+
+    // Characteristic SV handles
+	uint16_t  	SV_handle ;
+	uint16_t 	SV_user_description_handle ;
+
+    // Characteristic FM handles
+	uint16_t  	FM_handle ;
+	uint16_t 	FM_user_description_handle ;
+
+	// Callback functions
+	btstack_context_callback_registration_t callback_lat ;
     btstack_context_callback_registration_t callback_long ;
     btstack_context_callback_registration_t callback_PT3 ;
     btstack_context_callback_registration_t callback_PT4 ;
@@ -67,186 +79,181 @@ typedef struct {
     btstack_context_callback_registration_t callback_SV ;
     btstack_context_callback_registration_t callback_FM ;
 
-} GATT_DB ;
+} GYATT_DB ;
 
 // Create a callback registration object, and an att service handler object
 static att_service_handler_t service_handler ;
-static GATT_DB service_object ;
+static GYATT_DB service_object ;
 
 // Characteristic user descriptions (appear in LightBlue app)
-char characteristic_lat[] = "Latitiude micro-degrees" ;
-char characteristic_long[] = "Longitude micro-degrees" ;
-char characteristic_PT3[] = "PT3 - PSI" ;
-char characteristic_PT4[] = "PT4 - PSI" ;
-char characteristic_MAV[] = "MAV State" ;
-char characteristic_SV[] = "SV State" ;
-char characteristic_FM[] = "Flightmode" ;
+char char_lat[] = "Latitiude micro-degrees" ;
+char char_long[] = "Longitude micro-degrees" ;
+char char_PT3[] = "PT3 - PSI" ;
+char char_PT4[] = "PT4 - PSI" ;
+char char_MAV[] = "MAV State" ;
+char char_SV[] = "SV State" ;
+char char_FM[] = "Flightmode" ;
 
 // Protothreads semaphore
 static struct pt_sem BLUETOOTH_READY;
 
 // Callback functions for ATT notifications on characteristics
-static void latitude_callback(void * context){
+static void characteristic_latitude_callback(void * context){
 	// Associate the void pointer input with our custom service object
-	GATT_DB * instance = (GATT_DB *) context ;
-    // Dereference the pointer before converting to bytes
-    int32_t latitude_value = *(instance->latitude_value);
-    // Convert the int32_t latitude_value into a byte array
-    uint8_t latitude_bytes[4];
-    latitude_bytes[0] = (uint8_t) (latitude_value & 0xFF);
-    latitude_bytes[1] = (uint8_t) ((latitude_value >> 8) & 0xFF);
-    latitude_bytes[2] = (uint8_t) ((latitude_value >> 16) & 0xFF);
-    latitude_bytes[3] = (uint8_t) ((latitude_value >> 24) & 0xFF);
-    // Send a notification
-    att_server_notify(instance->con_handle, instance->latitude_handle, latitude_bytes, sizeof(latitude_bytes));
-}
-static void longitude_callback(void * context) {
-    GATT_DB * instance = (GATT_DB *) context ;
-    int32_t longitude_value= *(instance->longitude_value);
-    uint8_t longitude_bytes[4];
-    longitude_bytes[0] = (uint8_t) (longitude_value & 0xFF);
-    longitude_bytes[1] = (uint8_t) ((longitude_value >> 8) & 0xFF);
-    longitude_bytes[2] = (uint8_t) ((longitude_value >> 16) & 0xFF);
-    longitude_bytes[3] = (uint8_t) ((longitude_value >> 24) & 0xFF);
-    // Send a notification
-	att_server_notify(instance->con_handle, instance->longitude_handle, longitude_bytes, sizeof(longitude_bytes));
-}
-static void PT3_callback(void * context){
-    GATT_DB * instance = (GATT_DB *) context ;
-    // Convert float PT3 to 4-byte array using memcpy
-    uint8_t PT3_bytes[4];
-    memcpy(PT3_bytes, &instance->PT3_value, sizeof(instance->PT3_value));
-
-    // Send a notification with PT3 value
-    att_server_notify(instance->con_handle, instance->PT3_handle, PT3_bytes, sizeof(PT3_bytes));
-}
-static void PT4_callback(void * context){
-    GATT_DB * instance = (GATT_DB *) context ;
-    // Convert float PT3 to 4-byte array using memcpy
-    uint8_t PT4_bytes[4];
-    memcpy(PT4_bytes, &instance->PT4_value, sizeof(instance->PT4_value));
-
-    // Send a notification with PT3 value
-    att_server_notify(instance->con_handle, instance->PT4_handle, PT4_bytes, sizeof(PT4_bytes));
-}
-static void MAV_callback(void * context){
-	// Associate the void pointer input with our custom service object
-	GATT_DB * instance = (GATT_DB *) context ;
+	GYATT_DB * instance = (GYATT_DB *) context ;
 	// Send a notification
-	att_server_notify(instance->con_handle, instance->MAV_handle, instance->MAV_value, sizeof(instance->MAV_value)) ;
+	att_server_notify(instance->con_handle, instance->latitude_handle, (uint8_t*)instance->latitude_value, strlen(instance->latitude_value)) ;
 }
-static void SV_callback(void * context){
-	GATT_DB * instance = (GATT_DB *) context ;
-	att_server_notify(instance->con_handle, instance->SV_handle, instance->SV_value, sizeof(instance->SV_value)) ;
+
+static void characteristic_longitude_callback(void * context){
+	// Associate the void pointer input with our custom service object
+	GYATT_DB * instance = (GYATT_DB *) context ;
+	// Send a notification
+	att_server_notify(instance->con_handle, instance->longitude_handle, (uint8_t*)instance->longitude_value, strlen(instance->longitude_value)) ;
 }
-static void FM_callback(void * context){
-	GATT_DB * instance = (GATT_DB *) context ;
-	att_server_notify(instance->con_handle, instance->Flightmode_handle, instance->Flightmode_value, sizeof(instance->Flightmode_value)) ;
+
+static void characteristic_PT3_callback(void * context){
+	// Associate the void pointer input with our custom service object
+	GYATT_DB * instance = (GYATT_DB *) context ;
+	// Send a notification
+	att_server_notify(instance->con_handle, instance->PT3_handle, (uint8_t*)instance->PT3_value, strlen(instance->PT3_value)) ;
+}
+
+static void characteristic_PT4_callback(void * context){
+	// Associate the void pointer input with our custom service object
+	GYATT_DB * instance = (GYATT_DB *) context ;
+	// Send a notification
+	att_server_notify(instance->con_handle, instance->PT4_handle, (uint8_t*)instance->PT4_value, strlen(instance->PT4_value)) ;
+}
+
+static void characteristic_MAV_callback(void * context){
+	// Associate the void pointer input with our custom service object
+	GYATT_DB * instance = (GYATT_DB *) context ;
+	// Send a notification
+	att_server_notify(instance->con_handle, instance->MAV_handle, (uint8_t*)instance->MAV_value, strlen(instance->MAV_value)) ;
+}
+
+static void characteristic_SV_callback(void * context){
+	// Associate the void pointer input with our custom service object
+	GYATT_DB * instance = (GYATT_DB *) context ;
+	// Send a notification
+	att_server_notify(instance->con_handle, instance->SV_handle, (uint8_t*)instance->SV_value, strlen(instance->SV_value)) ;
+}
+
+static void characteristic_FM_callback(void * context){
+	// Associate the void pointer input with our custom service object
+	GYATT_DB * instance = (GYATT_DB *) context ;
+	// Send a notification
+	att_server_notify(instance->con_handle, instance->FM_handle, (uint8_t*)instance->FM_value, strlen(instance->FM_value)) ;
 }
 
 // Read callback (no client configuration handles on characteristics without Notify)
 static uint16_t custom_service_read_callback(hci_con_handle_t con_handle, uint16_t attribute_handle, uint16_t offset, uint8_t * buffer, uint16_t buffer_size){
 	UNUSED(con_handle);
-    // Latitude Characteristic
-    if (attribute_handle == service_object.latitude_handle){
-        // Return latitude value as a blob (int32_t converted to bytes)
-        return att_read_callback_handle_blob((uint8_t *)&service_object.latitude_value, sizeof(service_object.latitude_value), offset, buffer, buffer_size);
-    }
 
-    if (attribute_handle == service_object.longitude_handle){
-        // Return longitude value as a blob (int32_t converted to bytes)
-        return att_read_callback_handle_blob((uint8_t *)&service_object.longitude_value, sizeof(service_object.longitude_value), offset, buffer, buffer_size);
-    }
+	// Characteristic Latitude
+	if (attribute_handle == service_object.latitude_handle){
+		return att_read_callback_handle_blob((uint8_t*)service_object.latitude_value, strlen(service_object.latitude_value), offset, buffer, buffer_size);
+	}
+	if (attribute_handle == service_object.latitude_user_description_handle) {
+		return att_read_callback_handle_blob((uint8_t*)service_object.latitude_user_description, strlen(service_object.latitude_user_description), offset, buffer, buffer_size);
+	}
 
-    if (attribute_handle == service_object.PT3_handle){
-        // Convert PT3 float value to bytes (using type casting to uint8_t* for byte array)
-        uint8_t pt3_bytes[sizeof(service_object.PT3_value)];
+    // Characteristic Longitude
+	if (attribute_handle == service_object.longitude_handle){
+		return att_read_callback_handle_blob((uint8_t*)service_object.longitude_value, strlen(service_object.longitude_value), offset, buffer, buffer_size);
+	}
+	if (attribute_handle == service_object.longitude_user_description_handle) {
+		return att_read_callback_handle_blob((uint8_t*)service_object.longitude_user_description, strlen(service_object.longitude_user_description), offset, buffer, buffer_size);
+	}
 
-        // Copy the float value into the byte array (may need to handle byte-ordering if needed)
-        memcpy(pt3_bytes, &service_object.PT3_value, sizeof(service_object.PT3_value));
+    // Characteristic PT3
+	if (attribute_handle == service_object.PT3_handle){
+		return att_read_callback_handle_blob((uint8_t*)service_object.PT3_value, strlen(service_object.PT3_value), offset, buffer, buffer_size);
+	}
+	if (attribute_handle == service_object.PT3_user_description_handle) {
+		return att_read_callback_handle_blob((uint8_t*)service_object.PT3_user_description, strlen(service_object.PT3_user_description), offset, buffer, buffer_size);
+	}
 
-        // Return the PT3 value as a blob (float converted to bytes)
-        return att_read_callback_handle_blob(pt3_bytes, sizeof(pt3_bytes), offset, buffer, buffer_size);
-    }
+    // Characteristic PT4
+	if (attribute_handle == service_object.PT4_handle){
+		return att_read_callback_handle_blob((uint8_t*)service_object.PT4_value, strlen(service_object.PT4_value), offset, buffer, buffer_size);
+	}
+	if (attribute_handle == service_object.PT4_user_description_handle) {
+		return att_read_callback_handle_blob((uint8_t*)service_object.PT4_user_description, strlen(service_object.PT4_user_description), offset, buffer, buffer_size);
+	}
 
-    if (attribute_handle == service_object.PT4_handle){
-        // Convert PT3 float value to bytes (using type casting to uint8_t* for byte array)
-        uint8_t pt4_bytes[sizeof(service_object.PT4_value)];
+    // Characteristic MAV
+	if (attribute_handle == service_object.MAV_handle){
+		return att_read_callback_handle_blob((uint8_t*)service_object.MAV_value, strlen(service_object.MAV_value), offset, buffer, buffer_size);
+	}
+	if (attribute_handle == service_object.MAV_user_description_handle) {
+		return att_read_callback_handle_blob((uint8_t*)service_object.MAV_user_description, strlen(service_object.MAV_user_description), offset, buffer, buffer_size);
+	}
 
-        // Copy the float value into the byte array (may need to handle byte-ordering if needed)
-        memcpy(pt4_bytes, &service_object.PT4_value, sizeof(service_object.PT4_value));
+    // Characteristic SV
+	if (attribute_handle == service_object.SV_handle){
+		return att_read_callback_handle_blob((uint8_t*)service_object.SV_value, strlen(service_object.SV_value), offset, buffer, buffer_size);
+	}
+	if (attribute_handle == service_object.SV_user_description_handle) {
+		return att_read_callback_handle_blob((uint8_t*)service_object.SV_user_description, strlen(service_object.SV_user_description), offset, buffer, buffer_size);
+	}
 
-        // Return the PT3 value as a blob (float converted to bytes)
-        return att_read_callback_handle_blob(pt4_bytes, sizeof(pt4_bytes), offset, buffer, buffer_size);
-    }
-
-    // MAV State
-    if (attribute_handle == service_object.MAV_handle){
-        return att_read_callback_handle_blob(service_object.MAV_value, sizeof(service_object.MAV_value), offset, buffer, buffer_size);
-    }
-
-    // SV State
-    if (attribute_handle == service_object.SV_handle){
-        return att_read_callback_handle_blob(service_object.SV_value, sizeof(service_object.SV_value), offset, buffer, buffer_size);
-    }
-
-    // Flightmode State
-    if (attribute_handle == service_object.Flightmode_handle){
-        return att_read_callback_handle_blob(service_object.Flightmode_value, sizeof(service_object.Flightmode_value), offset, buffer, buffer_size);
-    }
-
+    // Characteristic FM
+	if (attribute_handle == service_object.FM_handle){
+		return att_read_callback_handle_blob((uint8_t*)service_object.FM_value, strlen(service_object.FM_value), offset, buffer, buffer_size);
+	}
+	if (attribute_handle == service_object.FM_user_description_handle) {
+		return att_read_callback_handle_blob((uint8_t*)service_object.FM_user_description, strlen(service_object.FM_user_description), offset, buffer, buffer_size);
+	}
     return 0;
 }
-
-// Add write callback functions here if needed
 
 /////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// USER API /////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
-// Our application code to be able to initialize our GATT server, and we would 
-// like for our application to make its own updates to some of the characteristics 
-// in that server, and optionally notify the client when those updates occur. 
 
-// Initialize our custom service handler
-void custom_service_server_init(int32_t * lat_ptr, int32_t * long_ptr, float * PT3_ptr, float * PT4_ptr, uint8_t * MAV_ptr, uint8_t * SV_ptr, uint8_t * FM_ptr){
+void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr, char * PT4_ptr, char * MAV_ptr, char * SV_ptr, char * FM_ptr)
+{
     // Initialize the semaphore
-    PT_SEM_SAFE_INIT(&BLUETOOTH_READY,0);
+	PT_SEM_SAFE_INIT(&BLUETOOTH_READY, 0) ;
+
     // Pointer to our service object
-    GATT_DB * instance = &service_object ;
+	GYATT_DB * instance = &service_object ;
 
     // Assign characteristic value
-    instance->latitude_value = lat_ptr;
-    instance->longitude_value = long_ptr;
-    instance->PT3_value = PT3_ptr;
-    instance->PT4_value = PT4_ptr;
-    instance->MAV_value = MAV_ptr;
-    instance->SV_value = SV_ptr;
-    instance->Flightmode_value = FM_ptr;
+	instance->latitude_value = lat_ptr ;
+	instance->longitude_value = long_ptr ;
+	instance->PT3_value = PT3_ptr ;
+	instance->PT4_value = PT4_ptr ;
+	instance->MAV_value = MAV_ptr ;
+	instance->SV_value = SV_ptr ;
+    instance->FM_value = FM_ptr ;
 
-    // Assign characteristic descriptions
-    instance->latitude_character_description=characteristic_lat;
-    instance->longitude_character_description=characteristic_long;
-    instance->PT3_character_description=characteristic_PT3;
-    instance->PT4_character_description=characteristic_PT4;
-    instance->MAV_character_description=characteristic_MAV;
-    instance->SV_character_description=characteristic_SV;
-    instance->Flightmode_character_description=characteristic_FM;
+    // Assign characteristic user description
+	instance->latitude_user_description = char_lat;
+	instance->longitude_user_description = char_long ;
+	instance->PT3_user_description = char_PT3 ;
+	instance->PT4_user_description = char_PT4 ;
+	instance->MAV_user_description = char_MAV ;
+	instance->SV_user_description = char_SV ;
+    instance->FM_user_description = char_FM ;
 
     // Assigning Characteristic Handles
     instance->latitude_handle=ATT_CHARACTERISTIC_00000002_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE ;
-    instance->latitude_CD_handle=ATT_CHARACTERISTIC_00000002_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE ;
+    instance->latitude_user_description_handle=ATT_CHARACTERISTIC_00000002_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE ;
     instance->longitude_handle=ATT_CHARACTERISTIC_00000003_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
-    instance->longitude_CD_handle=ATT_CHARACTERISTIC_00000003_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
+    instance->longitude_user_description_handle=ATT_CHARACTERISTIC_00000003_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
     instance->PT3_handle=ATT_CHARACTERISTIC_00000004_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
-    instance->PT3_CD_handle=ATT_CHARACTERISTIC_00000004_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
+    instance->PT3_user_description_handle=ATT_CHARACTERISTIC_00000004_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
     instance->PT4_handle=ATT_CHARACTERISTIC_00000005_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
-    instance->PT4_CD_handle=ATT_CHARACTERISTIC_00000005_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
+    instance->PT4_user_description_handle=ATT_CHARACTERISTIC_00000005_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
     instance->MAV_handle=ATT_CHARACTERISTIC_00000006_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
-    instance->MAV_CD_handle=ATT_CHARACTERISTIC_00000006_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
+    instance->MAV_user_description_handle=ATT_CHARACTERISTIC_00000006_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
     instance->SV_handle=ATT_CHARACTERISTIC_00000007_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
-    instance->SV_CD_handle=ATT_CHARACTERISTIC_00000007_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
-    instance->Flightmode_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
-    instance->Flightmode_CD_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
+    instance->SV_user_description_handle=ATT_CHARACTERISTIC_00000007_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
+    instance->FM_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
+    instance->FM_user_description_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
 
     // Service Start and End Handles
     service_handler.start_handle = ATT_SERVICE_00000001_0000_0715_2006_853A52A41A44_START_HANDLE;
@@ -254,97 +261,110 @@ void custom_service_server_init(int32_t * lat_ptr, int32_t * long_ptr, float * P
     service_handler.read_callback = &custom_service_read_callback;
 
     // Register the service handler
-    att_server_register_service_handler(&service_handler);
-    }
-
-// Update Latitude Characteristic Value
-void set_latitude_value(int32_t value) {
-    // Pointer to our service object
-    GATT_DB * instance = &service_object;
-
-    // Update field value
-    *(instance->latitude_value) = value;
-
-    // Register a callback for sending notifications
-    instance->callback_lat.callback = &latitude_callback;
-    instance->callback_lat.context  = (void*) instance;
-    att_server_register_can_send_now_callback(&instance->callback_lat, instance->con_handle);
+	att_server_register_service_handler(&service_handler);
 }
-// Update Longitude Characteristic Value
-void set_longitude_value(int32_t value) {
-    // Pointer to our service object
-    GATT_DB * instance = &service_object;
 
-    // Update field value
-    *(instance->longitude_value) = value;
+// Update Latitude value
+void set_latitude_value(int value){
 
-    // Register a callback for sending notifications
-    instance->callback_long.callback = &longitude_callback;
-    instance->callback_long.context  = (void*) instance;
-    att_server_register_can_send_now_callback(&instance->callback_long, instance->con_handle);
+	// Pointer to our service object
+	GYATT_DB * instance = &service_object ;
+
+	// Update field value
+	sprintf(instance->latitude_value, "%d", value) ;
+
+	// Are notifications enabled? If so, register a callback
+	instance->callback_lat.callback = &characteristic_latitude_callback;
+	instance->callback_lat.context  = (void*) instance;
+	att_server_register_can_send_now_callback(&instance->callback_lat, instance->con_handle);;
 }
-// Update PT3 Characteristic Value
-void set_PT3_value(float value) {
-    // Pointer to our service object
-    GATT_DB * instance = &service_object;
 
-    // Update field value
-    *(instance->PT3_value) = value;
+// Update Longitude value
+void set_longitude_value(int value){
 
-    // Register a callback for sending notifications
-    instance->callback_PT3.callback = &PT3_callback;
-    instance->callback_PT3.context  = (void*) instance;
-    att_server_register_can_send_now_callback(&instance->callback_PT3, instance->con_handle);
+	// Pointer to our service object
+	GYATT_DB * instance = &service_object ;
+
+	// Update field value
+	sprintf(instance->longitude_value, "%d", value) ;
+
+	// Are notifications enabled? If so, register a callback
+	instance->callback_long.callback = &characteristic_longitude_callback;
+	instance->callback_long.context  = (void*) instance;
+	att_server_register_can_send_now_callback(&instance->callback_long, instance->con_handle);;
 }
-// Update PT4 Characteristic Value
-void set_PT4_value(float value) {
-    // Pointer to our service object
-    GATT_DB * instance = &service_object;
 
-    // Update field value
-    *(instance->PT4_value) = value;
+// Update PT3 value
+void set_PT3_value(float value){
 
-    // Register a callback for sending notifications
-    instance->callback_PT4.callback = &PT4_callback;
-    instance->callback_PT4.context  = (void*) instance;
-    att_server_register_can_send_now_callback(&instance->callback_PT4, instance->con_handle);
+	// Pointer to our service object
+	GYATT_DB * instance = &service_object ;
+
+	// Update field value
+	sprintf(instance->PT3_value, "%d", value) ;
+
+	// Are notifications enabled? If so, register a callback
+	instance->callback_PT3.callback = &characteristic_PT3_callback;
+	instance->callback_PT3.context  = (void*) instance;
+	att_server_register_can_send_now_callback(&instance->callback_PT3, instance->con_handle);;
 }
-// Update MAV Characteristic Value
-void set_MAV_value(uint8_t value) {
-    // Pointer to our service object
-    GATT_DB * instance = &service_object;
 
-    // Update field value
-    *(instance->MAV_value) = value;
+// Update PT4 value
+void set_PT4_value(float value){
 
-    // Register a callback for sending notifications
-    instance->callback_MAV.callback = &MAV_callback;
-    instance->callback_MAV.context  = (void*) instance;
-    att_server_register_can_send_now_callback(&instance->callback_MAV, instance->con_handle);
+	// Pointer to our service object
+	GYATT_DB * instance = &service_object ;
+
+	// Update field value
+	sprintf(instance->PT4_value, "%d", value) ;
+
+	// Are notifications enabled? If so, register a callback
+	instance->callback_PT4.callback = &characteristic_PT4_callback;
+	instance->callback_PT4.context  = (void*) instance;
+	att_server_register_can_send_now_callback(&instance->callback_PT4, instance->con_handle);;
 }
-// Update SV Characteristic Value
-void set_SV_value(uint8_t value) {
-    // Pointer to our service object
-    GATT_DB * instance = &service_object;
 
-    // Update field value
-    *(instance->SV_value) = value;
+// Update MAV value
+void set_MAV_value(bool value){
 
-    // Register a callback for sending notifications
-    instance->callback_SV.callback = &SV_callback;
-    instance->callback_SV.context  = (void*) instance;
-    att_server_register_can_send_now_callback(&instance->callback_SV, instance->con_handle);
+	// Pointer to our service object
+	GYATT_DB * instance = &service_object ;
+
+	// Update field value
+	sprintf(instance->MAV_value, "%d", value) ;
+
+	// Are notifications enabled? If so, register a callback
+	instance->callback_MAV.callback = &characteristic_MAV_callback;
+	instance->callback_MAV.context  = (void*) instance;
+	att_server_register_can_send_now_callback(&instance->callback_MAV, instance->con_handle);;
 }
-// Update FM Characteristic Value
-void set_FM_value(uint8_t value) {
-    // Pointer to our service object
-    GATT_DB * instance = &service_object;
 
-    // Update field value
-    *(instance->Flightmode_value) = value;
+// Update SV value
+void set_SV_value(bool value){
 
-    // Register a callback for sending notifications
-    instance->callback_FM.callback = &FM_callback;
-    instance->callback_FM.context  = (void*) instance;
-    att_server_register_can_send_now_callback(&instance->callback_FM, instance->con_handle);
+	// Pointer to our service object
+	GYATT_DB * instance = &service_object ;
+
+	// Update field value
+	sprintf(instance->SV_value, "%d", value) ;
+
+	// Are notifications enabled? If so, register a callback
+	instance->callback_SV.callback = &characteristic_SV_callback;
+	instance->callback_SV.context  = (void*) instance;
+	att_server_register_can_send_now_callback(&instance->callback_SV, instance->con_handle);;
+}
+
+// Update FM value
+void set_FM_value(int value){
+
+	// Pointer to our service object
+	GYATT_DB * instance = &service_object ;
+
+	// Update field value
+	sprintf(instance->FM_value, "%d", value) ;
+
+	// Are notifications enabled? If so, register a callback
+	instance->callback_FM.callback = &characteristic_FM_callback;
+	instance->callback_FM.context  = (void*) instance;
+	att_server_register_can_send_now_callback(&instance->callback_FM, instance->con_handle);;
 }
