@@ -301,9 +301,9 @@ void set_PT3_value(float value){
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->PT3_value, "%d", value) ;
+	sprintf(instance->PT3_value, "%.5f", value) ;
 
-	// Are notifications enabled? If so, register a callback
+	// Register a callback
 	instance->callback_PT3.callback = &characteristic_PT3_callback;
 	instance->callback_PT3.context  = (void*) instance;
 	att_server_register_can_send_now_callback(&instance->callback_PT3, instance->con_handle);;
@@ -316,9 +316,9 @@ void set_PT4_value(float value){
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->PT4_value, "%d", value) ;
+	sprintf(instance->PT4_value, "%.5f", value) ;
 
-	// Are notifications enabled? If so, register a callback
+	// Register a callback
 	instance->callback_PT4.callback = &characteristic_PT4_callback;
 	instance->callback_PT4.context  = (void*) instance;
 	att_server_register_can_send_now_callback(&instance->callback_PT4, instance->con_handle);;
@@ -333,7 +333,7 @@ void set_MAV_value(bool value){
 	// Update field value
 	sprintf(instance->MAV_value, "%d", value) ;
 
-	// Are notifications enabled? If so, register a callback
+	// Register a callback
 	instance->callback_MAV.callback = &characteristic_MAV_callback;
 	instance->callback_MAV.context  = (void*) instance;
 	att_server_register_can_send_now_callback(&instance->callback_MAV, instance->con_handle);;

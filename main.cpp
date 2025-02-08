@@ -3,6 +3,7 @@
 #include "pico/cyw43_arch.h"
 #include "pico/btstack_cyw43.h"
 #include "stdint.h"
+#include "cmath"
 
 #include "btstack_config.h"
 #include "btstack.h"
@@ -18,53 +19,18 @@
 #include "GAP_Advertisement/gap_config.h"
 #include "GATT_Service/service_implementation.h"
 
-// Low-level alarm infrastructure we'll be using to send data perodically
-#define ALARM_NUM 0
-#define ALARM_IRQ TIMER_IRQ_0
-
-// // DDS parameters
-// #define two32 4294967296.0 // 2^32 
-// #define Fs 50000
-// #define DELAY 20 // 1/Fs (in microseconds)
-// #define two32overFs 85899
-// // the DDS units:
-// volatile unsigned int phase_accum_main;
-// volatile float freq = 400.0 ;
-// volatile unsigned int phase_incr_main = (400*two32)/Fs ; ;//
-
-// // DAC parameters
-// // A-channel, 1x, active
-// #define DAC_config_chan_A 0b0011000000000000
-// // B-channel, 1x, active
-// #define DAC_config_chan_B 0b1011000000000000
-
-// // DDS sine table
-// #define sine_table_size 256
-// volatile int sin_table[sine_table_size] ;
-
-// Period with which we'll enter the BTstack timer callback
-#define CALL_PERIOD_MS 250
-
 // BTstack objects
 static btstack_timer_source_t heartbeat;
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 
-// int lat_value = 33132860 ; // my home address
-// int32_t long_value = -96883190 ; 
-// float PT3_value = 25.6f ;
-// float PT4_value = 30.5f ;
-// uint8_t MAV_value = 1 ;
-// uint8_t SV_value = 0 ;
-// uint8_t Flightmode_value = 2;
-
 // Buffers for sending the values as byte arrays
-char lat_bytes[100];    // 4 bytes for an int32_t
-char long_bytes[100];   // 4 bytes for an int32_t
-char PT3_bytes[100];    // 4 bytes for a float
-char PT4_bytes[100];    // 4 bytes for a float
-char MAV_bytes[100];    // 1 byte for uint8_t
-char SV_bytes[100];     // 1 byte for uint8_t
-char FM_bytes[100];     // 1 byte for uint8_t
+char lat_bytes[100]; 
+char long_bytes[100];
+char PT3_bytes[100]; 
+char PT4_bytes[100]; 
+char MAV_bytes[100]; 
+char SV_bytes[100];
+char FM_bytes[100];
 
 
 int main() {
@@ -97,10 +63,12 @@ int main() {
     hci_power_control(HCI_POWER_ON);
     
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+    
+    // define test values
     int lat_val = 33132860; // in micro degrees 10^-6
     int long_val = -96883190;
-    float PT3 = 128.6f;
-    float PT4 = 33.689f;
+    float PT3 = 128.12345f; // PT3 and 4 are to the 5th decimal point
+    float PT4 = 33.67890f;
     bool MAV = 0;
     bool SV = true;
     int FM = 3;
@@ -108,7 +76,6 @@ int main() {
     printf("Should have intialized\n");
 
     while (true) {
-        sleep_ms(10000);
         set_latitude_value(lat_val);
         set_longitude_value(long_val);
         set_PT3_value(PT3);
@@ -116,7 +83,8 @@ int main() {
         set_MAV_value(MAV);
         set_SV_value(SV);
         set_FM_value(FM);
-        printf("Latitude: %d Longitude: %d PT3: %f PT4: %f MAV: %d SV: %d FM: %d\n" , lat_val, long_val, PT3, PT4, MAV, SV, FM);
+        sleep_ms(10000);
+        printf("Latitude: %d Longitude: %d PT3: %.5f PT4: %.5f MAV: %d SV: %d FM: %d\n" , lat_val, long_val, PT3, PT4, MAV, SV, FM);
     }
 
 }
