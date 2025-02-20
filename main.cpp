@@ -2,17 +2,12 @@
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 #include "pico/btstack_cyw43.h"
-#include "stdint.h"
-#include "cmath"
 
 #include "btstack_config.h"
 #include "btstack.h"
 #include "SRAD_RT_db.h"
 
 // Hardware API's
-#include "hardware/timer.h"
-#include "hardware/irq.h"
-#include "hardware/spi.h"
 #include "hardware/sync.h"
 
 // GAP and GATT
@@ -20,7 +15,6 @@
 #include "GATT_Service/service_implementation.h"
 
 // BTstack objects
-static btstack_timer_source_t heartbeat;
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 
 // Buffers for sending the values as byte arrays
@@ -36,6 +30,7 @@ char FM_bytes[100];
 int main() {
     stdio_init_all();
 
+    sleep_ms(10000);
     // Initialise the Wi-Fi/BLE chip
     if (cyw43_arch_init()) {
         printf("Wi-Fi init failed\n");
@@ -74,17 +69,19 @@ int main() {
     int FM = 3;
 
     printf("Should have intialized\n");
+    set_latitude_value(&lat_val);
+    set_longitude_value(&long_val);
+    set_PT3_value(&PT3);
+    set_PT4_value(&PT4);
+    set_MAV_value(&MAV);
+    set_SV_value(&SV);
+    set_FM_value(&FM);
 
     while (true) {
-        set_latitude_value(lat_val);
-        set_longitude_value(long_val);
-        set_PT3_value(PT3);
-        set_PT4_value(PT4);
-        set_MAV_value(MAV);
-        set_SV_value(SV);
-        set_FM_value(FM);
-        sleep_ms(10000);
+        sleep_ms(30000);
         printf("Latitude: %d Longitude: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d\n" , lat_val, long_val, PT3, PT4, MAV, SV, FM);
+        lat_val += 1000;
+        set_latitude_value(&lat_val);
     }
 
 }

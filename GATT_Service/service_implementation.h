@@ -6,8 +6,6 @@
 #include "btstack_debug.h"
 #include "hardware/sync.h"
 
-#include <pt_cornell_rp2040_v1_3.h>
-
 // Create a struct for managing this service
 typedef struct {
 
@@ -45,30 +43,44 @@ typedef struct {
 	// Characteristic latitude handles
 	uint16_t  	latitude_handle ;
 	uint16_t 	latitude_user_description_handle ;
+	uint16_t    latitiude_client_configuration ;
+	uint16_t    latitiude_client_configuration_handle ;
 
     // Characteristic longitude handles
 	uint16_t  	longitude_handle ;
 	uint16_t 	longitude_user_description_handle ;
+	uint16_t    longitude_client_configuration ;
+	uint16_t    longitude_client_configuration_handle ;
 
     // Characteristic PT3 handles
 	uint16_t  	PT3_handle ;
 	uint16_t 	PT3_user_description_handle ;
+	uint16_t    PT3_client_configuration ;
+	uint16_t    PT3_client_configuration_handle ;
 
     // Characteristic PT4 handles
 	uint16_t  	PT4_handle ;
 	uint16_t 	PT4_user_description_handle ;
+	uint16_t    PT4_client_configuration ;
+	uint16_t    PT4_client_configuration_handle ;
 
     // Characteristic MAV handles
 	uint16_t  	MAV_handle ;
 	uint16_t 	MAV_user_description_handle ;
+	uint16_t    MAV_client_configuration ;
+	uint16_t    MAV_client_configuration_handle ;
 
     // Characteristic SV handles
 	uint16_t  	SV_handle ;
 	uint16_t 	SV_user_description_handle ;
+	uint16_t    SV_client_configuration ;
+	uint16_t    SV_client_configuration_handle ;
 
     // Characteristic FM handles
 	uint16_t  	FM_handle ;
 	uint16_t 	FM_user_description_handle ;
+	uint16_t    FM_client_configuration ;
+	uint16_t    FM_client_configuration_handle ;
 
 	// Callback functions
 	btstack_context_callback_registration_t callback_lat ;
@@ -93,9 +105,6 @@ char char_PT4[] = "PT4 - PSI" ;
 char char_MAV[] = "MAV State" ;
 char char_SV[] = "SV State" ;
 char char_FM[] = "Flightmode" ;
-
-// Protothreads semaphore
-static struct pt_sem BLUETOOTH_READY;
 
 // Callback functions for ATT notifications on characteristics
 static void characteristic_latitude_callback(void * context){
@@ -158,6 +167,9 @@ static uint16_t custom_service_read_callback(hci_con_handle_t con_handle, uint16
 	if (attribute_handle == service_object.latitude_user_description_handle) {
 		return att_read_callback_handle_blob((uint8_t*)service_object.latitude_user_description, strlen(service_object.latitude_user_description), offset, buffer, buffer_size);
 	}
+	if (attribute_handle == service_object.latitiude_client_configuration_handle){
+        return att_read_callback_handle_little_endian_16(service_object.latitiude_client_configuration, offset, buffer, buffer_size);
+    }
 
     // Characteristic Longitude
 	if (attribute_handle == service_object.longitude_handle){
@@ -166,6 +178,9 @@ static uint16_t custom_service_read_callback(hci_con_handle_t con_handle, uint16
 	if (attribute_handle == service_object.longitude_user_description_handle) {
 		return att_read_callback_handle_blob((uint8_t*)service_object.longitude_user_description, strlen(service_object.longitude_user_description), offset, buffer, buffer_size);
 	}
+	if (attribute_handle == service_object.longitude_client_configuration_handle){
+        return att_read_callback_handle_little_endian_16(service_object.longitude_client_configuration, offset, buffer, buffer_size);
+    }
 
     // Characteristic PT3
 	if (attribute_handle == service_object.PT3_handle){
@@ -174,6 +189,9 @@ static uint16_t custom_service_read_callback(hci_con_handle_t con_handle, uint16
 	if (attribute_handle == service_object.PT3_user_description_handle) {
 		return att_read_callback_handle_blob((uint8_t*)service_object.PT3_user_description, strlen(service_object.PT3_user_description), offset, buffer, buffer_size);
 	}
+	if (attribute_handle == service_object.PT3_client_configuration_handle){
+        return att_read_callback_handle_little_endian_16(service_object.PT3_client_configuration, offset, buffer, buffer_size);
+    }
 
     // Characteristic PT4
 	if (attribute_handle == service_object.PT4_handle){
@@ -182,6 +200,9 @@ static uint16_t custom_service_read_callback(hci_con_handle_t con_handle, uint16
 	if (attribute_handle == service_object.PT4_user_description_handle) {
 		return att_read_callback_handle_blob((uint8_t*)service_object.PT4_user_description, strlen(service_object.PT4_user_description), offset, buffer, buffer_size);
 	}
+	if (attribute_handle == service_object.PT4_client_configuration_handle){
+        return att_read_callback_handle_little_endian_16(service_object.PT4_client_configuration, offset, buffer, buffer_size);
+    }
 
     // Characteristic MAV
 	if (attribute_handle == service_object.MAV_handle){
@@ -190,6 +211,9 @@ static uint16_t custom_service_read_callback(hci_con_handle_t con_handle, uint16
 	if (attribute_handle == service_object.MAV_user_description_handle) {
 		return att_read_callback_handle_blob((uint8_t*)service_object.MAV_user_description, strlen(service_object.MAV_user_description), offset, buffer, buffer_size);
 	}
+	if (attribute_handle == service_object.MAV_client_configuration_handle){
+        return att_read_callback_handle_little_endian_16(service_object.MAV_client_configuration, offset, buffer, buffer_size);
+    }
 
     // Characteristic SV
 	if (attribute_handle == service_object.SV_handle){
@@ -198,6 +222,9 @@ static uint16_t custom_service_read_callback(hci_con_handle_t con_handle, uint16
 	if (attribute_handle == service_object.SV_user_description_handle) {
 		return att_read_callback_handle_blob((uint8_t*)service_object.SV_user_description, strlen(service_object.SV_user_description), offset, buffer, buffer_size);
 	}
+	if (attribute_handle == service_object.SV_client_configuration_handle){
+        return att_read_callback_handle_little_endian_16(service_object.SV_client_configuration, offset, buffer, buffer_size);
+    }
 
     // Characteristic FM
 	if (attribute_handle == service_object.FM_handle){
@@ -206,17 +233,62 @@ static uint16_t custom_service_read_callback(hci_con_handle_t con_handle, uint16
 	if (attribute_handle == service_object.FM_user_description_handle) {
 		return att_read_callback_handle_blob((uint8_t*)service_object.FM_user_description, strlen(service_object.FM_user_description), offset, buffer, buffer_size);
 	}
+	if (attribute_handle == service_object.FM_client_configuration_handle){
+        return att_read_callback_handle_little_endian_16(service_object.FM_client_configuration, offset, buffer, buffer_size);
+    }
     return 0;
 }
 
+// Write callback
+static int custom_service_write_callback(hci_con_handle_t con_handle, uint16_t attribute_handle, uint16_t transaction_mode, uint16_t offset, uint8_t *buffer, uint16_t buffer_size){
+    UNUSED(transaction_mode);
+    UNUSED(offset);
+    UNUSED(buffer_size);
+
+	// Enable/disable notifications - Lat
+    if (attribute_handle == service_object.latitiude_client_configuration_handle){
+        service_object.latitiude_client_configuration = little_endian_read_16(buffer, 0);
+        service_object.con_handle = con_handle;
+    }
+    // Enable/disable notifications - Long
+    if (attribute_handle == service_object.longitude_client_configuration_handle){
+        service_object.longitude_client_configuration = little_endian_read_16(buffer, 0);
+        service_object.con_handle = con_handle;
+    }
+	// Enable/disable notifications - PT3
+    if (attribute_handle == service_object.PT3_client_configuration_handle){
+        service_object.PT3_client_configuration = little_endian_read_16(buffer, 0);
+        service_object.con_handle = con_handle;
+    }
+    // Enable/disable notifications - PT4
+    if (attribute_handle == service_object.PT4_client_configuration_handle){
+        service_object.PT4_client_configuration = little_endian_read_16(buffer, 0);
+        service_object.con_handle = con_handle;
+    }
+	// Enable/disable notifications - MAV
+    if (attribute_handle == service_object.MAV_client_configuration_handle){
+        service_object.MAV_client_configuration = little_endian_read_16(buffer, 0);
+        service_object.con_handle = con_handle;
+    }
+    // Enable/disable notifications - SV
+    if (attribute_handle == service_object.SV_client_configuration_handle){
+        service_object.SV_client_configuration = little_endian_read_16(buffer, 0);
+        service_object.con_handle = con_handle;
+    }
+	// Enable/disable notifications - FM
+    if (attribute_handle == service_object.FM_client_configuration_handle){
+        service_object.FM_client_configuration = little_endian_read_16(buffer, 0);
+        service_object.con_handle = con_handle;
+    }
+	return 0;
+
+}
 /////////////////////////////////////////////////////////////////////////////
 ////////////////////////////// USER API /////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
 void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr, char * PT4_ptr, char * MAV_ptr, char * SV_ptr, char * FM_ptr)
 {
-    // Initialize the semaphore
-	PT_SEM_SAFE_INIT(&BLUETOOTH_READY, 0) ;
 
     // Pointer to our service object
 	GYATT_DB * instance = &service_object ;
@@ -255,116 +327,139 @@ void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr,
     instance->FM_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
     instance->FM_user_description_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
 
+	instance->latitiude_client_configuration_handle=ATT_CHARACTERISTIC_00000002_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
+    instance->longitude_client_configuration_handle=ATT_CHARACTERISTIC_00000003_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
+    instance->PT3_client_configuration_handle=ATT_CHARACTERISTIC_00000004_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
+    instance->PT4_client_configuration_handle=ATT_CHARACTERISTIC_00000005_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
+    instance->MAV_client_configuration_handle=ATT_CHARACTERISTIC_00000006_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
+    instance->SV_client_configuration_handle=ATT_CHARACTERISTIC_00000007_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
+    instance->FM_client_configuration_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
+    
+
     // Service Start and End Handles
     service_handler.start_handle = ATT_SERVICE_00000001_0000_0715_2006_853A52A41A44_START_HANDLE;
     service_handler.end_handle = ATT_SERVICE_00000001_0000_0715_2006_853A52A41A44_END_HANDLE;
     service_handler.read_callback = &custom_service_read_callback;
+	service_handler.write_callback = &custom_service_write_callback ;
 
     // Register the service handler
 	att_server_register_service_handler(&service_handler);
 }
 
 // Update Latitude value
-void set_latitude_value(int value){
-
+void set_latitude_value(int * value){
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->latitude_value, "%d", value) ;
+	sprintf(instance->latitude_value, "%d", *value);
 
-	// Are notifications enabled? If so, register a callback
-	instance->callback_lat.callback = &characteristic_latitude_callback;
-	instance->callback_lat.context  = (void*) instance;
-	att_server_register_can_send_now_callback(&instance->callback_lat, instance->con_handle);;
+	if (instance->latitiude_client_configuration) {
+		// Register a callback
+		instance->callback_lat.callback = characteristic_latitude_callback;
+		instance->callback_lat.context  = (void*) instance;
+		att_server_register_can_send_now_callback(&instance->callback_lat, instance->con_handle);
+	}
 }
 
 // Update Longitude value
-void set_longitude_value(int value){
+void set_longitude_value(int * value){
 
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->longitude_value, "%d", value) ;
+	sprintf(instance->longitude_value, "%d", *value) ;
 
-	// Are notifications enabled? If so, register a callback
-	instance->callback_long.callback = &characteristic_longitude_callback;
-	instance->callback_long.context  = (void*) instance;
-	att_server_register_can_send_now_callback(&instance->callback_long, instance->con_handle);;
+	if (instance->longitude_client_configuration) {
+		// Register a callback
+		instance->callback_long.callback = characteristic_longitude_callback;
+		instance->callback_long.context  = (void*) instance;
+		att_server_register_can_send_now_callback(&instance->callback_long, instance->con_handle);
+	}
 }
 
 // Update PT3 value
-void set_PT3_value(float value){
+void set_PT3_value(float * value){
 
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->PT3_value, "%.3f", value) ;
+	sprintf(instance->PT3_value, "%.3f", *value) ;
 
-	// Register a callback
-	instance->callback_PT3.callback = &characteristic_PT3_callback;
-	instance->callback_PT3.context  = (void*) instance;
-	att_server_register_can_send_now_callback(&instance->callback_PT3, instance->con_handle);;
+	if (instance->PT3_client_configuration) {
+		// Register a callback
+		instance->callback_PT3.callback = characteristic_PT3_callback;
+		instance->callback_PT3.context  = (void*) instance;
+		att_server_register_can_send_now_callback(&instance->callback_PT3, instance->con_handle);
+	}
 }
 
 // Update PT4 value
-void set_PT4_value(float value){
+void set_PT4_value(float * value){
 
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->PT4_value, "%.3f", value) ;
+	sprintf(instance->PT4_value, "%.3f", *value) ;
 
-	// Register a callback
-	instance->callback_PT4.callback = &characteristic_PT4_callback;
-	instance->callback_PT4.context  = (void*) instance;
-	att_server_register_can_send_now_callback(&instance->callback_PT4, instance->con_handle);;
+	if (instance->PT4_client_configuration) {
+		// Register a callback
+		instance->callback_PT4.callback = characteristic_PT4_callback;
+		instance->callback_PT4.context  = (void*) instance;
+		att_server_register_can_send_now_callback(&instance->callback_PT4, instance->con_handle);
+	}
 }
 
 // Update MAV value
-void set_MAV_value(bool value){
+void set_MAV_value(bool * value){
 
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->MAV_value, "%d", value) ;
+	sprintf(instance->MAV_value, "%d", *value) ;
 
-	// Register a callback
-	instance->callback_MAV.callback = &characteristic_MAV_callback;
-	instance->callback_MAV.context  = (void*) instance;
-	att_server_register_can_send_now_callback(&instance->callback_MAV, instance->con_handle);;
+	if (instance->MAV_client_configuration) {
+		// Register a callback
+		instance->callback_MAV.callback = characteristic_MAV_callback;
+		instance->callback_MAV.context  = (void*) instance;
+		att_server_register_can_send_now_callback(&instance->callback_MAV, instance->con_handle);
+	}
 }
 
 // Update SV value
-void set_SV_value(bool value){
+void set_SV_value(bool * value){
 
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->SV_value, "%d", value) ;
+	sprintf(instance->SV_value, "%d", *value) ;
 
-	// Are notifications enabled? If so, register a callback
-	instance->callback_SV.callback = &characteristic_SV_callback;
-	instance->callback_SV.context  = (void*) instance;
-	att_server_register_can_send_now_callback(&instance->callback_SV, instance->con_handle);;
+	if (instance->SV_client_configuration) {
+		// Register a callback
+		instance->callback_SV.callback = characteristic_SV_callback;
+		instance->callback_SV.context  = (void*) instance;
+		att_server_register_can_send_now_callback(&instance->callback_SV, instance->con_handle);
+	}
 }
 
 // Update FM value
-void set_FM_value(int value){
+void set_FM_value(int * value){
 
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
 
 	// Update field value
-	sprintf(instance->FM_value, "%d", value) ;
+	sprintf(instance->FM_value, "%d", *value) ;
 
-	// Are notifications enabled? If so, register a callback
-	instance->callback_FM.callback = &characteristic_FM_callback;
-	instance->callback_FM.context  = (void*) instance;
-	att_server_register_can_send_now_callback(&instance->callback_FM, instance->con_handle);;
+	if (instance->FM_client_configuration) {
+		// Register a callback
+		instance->callback_FM.callback = characteristic_FM_callback;
+		instance->callback_FM.context  = (void*) instance;
+		att_server_register_can_send_now_callback(&instance->callback_FM, instance->con_handle);
+	}
 }

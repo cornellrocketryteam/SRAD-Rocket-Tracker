@@ -27,6 +27,7 @@
 #define MAX_NR_SM_LOOKUP_ENTRIES 3
 #define MAX_NR_WHITELIST_ENTRIES 16
 #define MAX_NR_LE_DEVICE_DB_ENTRIES 16
+#define ENABLE_ATT_DELAYED_RESPONSE //  change - not sure what it does but migth fix everything
 
 // Enable and configure HCI Controller to Host Flow Control to avoid cyw43 shared bus overrun
 #define ENABLE_HCI_CONTROLLER_TO_HOST_FLOW_CONTROL // Enables HCI flow control between the controller and host. This is useful when hardware flow control (CTS/RTS) is unavailable, ensuring the controller doesn’t flood the host with too much data
