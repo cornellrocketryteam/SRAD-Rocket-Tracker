@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(SRAD_RT main.cpp )
+add_executable(SRAD_RT main.cpp radio.cpp)
 
 pico_set_program_name(SRAD_RT "SRAD_RT")
 pico_set_program_version(SRAD_RT "0.1")
@@ -55,7 +55,6 @@ target_include_directories(SRAD_RT PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
-include_directories(${PROJECT_SOURCE_DIR}/Protothreads/Protothreads_Demo)
 include_directories(${PROJECT_SOURCE_DIR}/GAP_Advertisment)
 
 # Add any user requested libraries
@@ -70,6 +69,9 @@ target_link_libraries(SRAD_RT
         hardware_sync
         hardware_pio
         hardware_dma
+        hardware_i2c
+        hardware_gpio
+        hardware_uart
         )
 
 # Add the standard include files to the build

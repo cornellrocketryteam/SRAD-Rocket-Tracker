@@ -347,7 +347,7 @@ void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr,
 }
 
 // Update Latitude value
-void set_latitude_value(int * value){
+void set_latitude_value(int32_t * value){
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
 
@@ -363,7 +363,7 @@ void set_latitude_value(int * value){
 }
 
 // Update Longitude value
-void set_longitude_value(int * value){
+void set_longitude_value(int32_t * value){
 
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
@@ -462,4 +462,14 @@ void set_FM_value(int * value){
 		instance->callback_FM.context  = (void*) instance;
 		att_server_register_can_send_now_callback(&instance->callback_FM, instance->con_handle);
 	}
+}
+
+void set_All(int32_t * latitude, int32_t * longitude, float * PT3, float * PT4, bool * MAV, bool * SV, int * FM) {
+	set_latitude_value(latitude);
+	set_longitude_value(longitude);
+	set_PT3_value(PT3);
+	set_PT4_value(PT4);
+	set_MAV_value(MAV);
+	set_SV_value(SV);
+	set_FM_value(FM);
 }
