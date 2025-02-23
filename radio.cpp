@@ -24,51 +24,24 @@ volatile bool packet_received = false;  // Flag to indicate packet completion
 int dma_chan;
 dma_channel_config dma_config;
 
+volatile int rx_offset = 0;  // Track received bytes
+
 void dma_handler() {
-    // Clear the interrupt flag
+    // Clear DMA interrupt flag
     dma_hw->ints0 = 1u << dma_chan;
 
-    // Set flag indicating a full packet was received
-    packet_received = true;
+    // Check how many bytes have been received so far
+    rx_offset += 32;  // Increment by 32-byte FIFO size
 
-    // Restart the DMA for the next packet
-    dma_channel_set_read_addr(dma_chan, &uart_get_hw(UART_PORT)->dr, true);
-}
+    if (rx_offset >= PACKET_SIZE) { 
+        packet_received = true;  // Full packet received
+        rx_offset = 0;  // Reset offset for next packet
+    }
 
-void setup_uart_dma() {
-    // Initialize UART1
-    uart_init(UART_PORT, RFM_BAUDRATE);
-    gpio_set_function(4, GPIO_FUNC_UART);  // TX Pin (if used)
-    gpio_set_function(5, GPIO_FUNC_UART);  // RX Pin
-
-    uart_set_format(UART_PORT, DATA_BITS, STOP_BITS, PARITY);
-    uart_set_fifo_enabled(UART_PORT, false); // Disable FIFO to use DMA properly
-
-    // Configure DMA Channel for UART RX
-    dma_chan = dma_claim_unused_channel(true);
-    dma_config = dma_channel_get_default_config(dma_chan);
-    
-    channel_config_set_transfer_data_size(&dma_config, DMA_SIZE_8); // 8-bit transfers
-    channel_config_set_read_increment(&dma_config, false); // Read from fixed address (UART RX FIFO)
-    channel_config_set_write_increment(&dma_config, true); // Write to buffer sequentially
-    channel_config_set_dreq(&dma_config, uart_get_dreq(UART_PORT, false)); // UART RX DREQ
-
-    dma_channel_configure(
-        dma_chan,
-        &dma_config,
-        rx_buffer,         // Write address (our buffer)
-        &uart_get_hw(UART_PORT)->dr, // Read address (UART1 RX FIFO)
-        PACKET_SIZE,       // Number of bytes per transfer
-        false              // Don't start yet
-    );
-
-    // Enable DMA IRQ when transfer is complete
-    dma_channel_set_irq0_enabled(dma_chan, true);
-    irq_set_exclusive_handler(DMA_IRQ_0, dma_handler);
-    irq_set_enabled(DMA_IRQ_0, true);
-
-    // Start DMA Transfer
-    dma_channel_start(dma_chan);
+    // Restart DMA for the next chunk, **but only if we're not at the start of a new packet**
+    if (!packet_received) {
+        dma_channel_set_read_addr(dma_chan, &uart_get_hw(UART_PORT)->dr, true);
+    }
 }
 
 #ifdef RATS_VERBOSE
@@ -99,7 +72,7 @@ bool Radio::start()
     // Set flow control to false for both
     uart_set_hw_flow(UART_PORT, false, false);
 
-    uart_set_fifo_enabled(UART_PORT, false); // Disable FIFO to use DMA properly
+    uart_set_fifo_enabled(UART_PORT, true); // Enable FIFO for efficient DMA transfers
 
     // DMA Setup
     dma_chan = dma_claim_unused_channel(true);
@@ -115,7 +88,7 @@ bool Radio::start()
         &dma_config,
         rx_buffer,         // Buffer to store packet
         &uart_get_hw(UART_PORT)->dr, // Read from UART RX FIFO
-        PACKET_SIZE,      // Packet size (107 bytes)
+        32,      // FIFO size of 32 bytes
         false              // Don't start yet
     );
 
@@ -125,7 +98,7 @@ bool Radio::start()
     irq_set_enabled(DMA_IRQ_0, true);
 
     // Start DMA transfer
-    dma_channel_start(dma_chan);
+    dma_start_channel_mask(1u << dma_chan);
 
     return true;
 }
@@ -143,6 +116,7 @@ bool Radio::read(Telemetry *result)
     std::memcpy(result, rx_buffer, sizeof(Telemetry));
 
     // Restart DMA transfer for the next packet
+    rx_offset = 0;  // Reset offset
     dma_channel_set_read_addr(dma_chan, &uart_get_hw(UART_PORT)->dr, true);
 
     return true;
