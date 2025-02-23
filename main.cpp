@@ -117,12 +117,15 @@ int main() {
         // set_latitude_value(&lat_val);
         bool success = radio.read(&telemetry);
         if (success) {
+            printf("Success");
             MAV=curr_MAV_state(telemetry);
             SV=curr_SV_state(telemetry);
             FM=curr_FM(telemetry);
+            printf("Lat: %d Long: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d\n",telemetry.gps_latitude, telemetry.gps_longitude, telemetry.pressure_pt3, telemetry.pressure_pt4, MAV, SV, FM);
             set_All(&telemetry.gps_latitude,&telemetry.gps_longitude,&telemetry.pressure_pt3,&telemetry.pressure_pt4,&MAV,&SV,&FM);
+            sleep_ms(5000);
         }
-
+        sleep_ms(500);
     }
 
 }

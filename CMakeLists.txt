@@ -32,6 +32,7 @@ project(SRAD_RT C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
+add_definitions(-DRATS_VERBOSE)
 
 # Add executable. Default name is the project name, version 0.1
 
