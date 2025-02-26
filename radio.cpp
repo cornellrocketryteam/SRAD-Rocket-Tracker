@@ -8,10 +8,7 @@
 #include "radio.hpp"
 #include "hardware/uart.h"
 #include "hardware/gpio.h"
-#include "hardware/uart.h"
 #include "telemetry.hpp"
-#include "time.h"
-#include "pico/time.h"
 #include "pins.hpp"
 #include <cstdio>
 #include <sstream>
