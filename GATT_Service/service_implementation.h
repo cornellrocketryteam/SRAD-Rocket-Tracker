@@ -364,12 +364,17 @@ void set_latitude_value(int32_t * value){
 
 // Update Longitude value
 void set_longitude_value(int32_t * value){
-
+	printf("just called function\n");
+	sleep_ms(50);
 	// Pointer to our service object
 	GYATT_DB * instance = &service_object ;
+	printf("pointed to the service object\n");
+	sleep_ms(50);
 
 	// Update field value
 	sprintf(instance->longitude_value, "%d", *value) ;
+	printf("updated the field value\n");
+	sleep_ms(50);
 
 	if (instance->longitude_client_configuration) {
 		// Register a callback
@@ -377,6 +382,8 @@ void set_longitude_value(int32_t * value){
 		instance->callback_long.context  = (void*) instance;
 		att_server_register_can_send_now_callback(&instance->callback_long, instance->con_handle);
 	}
+	printf("registered callback if value was correct\n");
+	sleep_ms(50);
 }
 
 // Update PT3 value

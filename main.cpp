@@ -19,6 +19,7 @@
 #include "telemetry.hpp"
 #include "radio.hpp"
 #include "hardware/i2c.h"
+#include "tusb.h"
 
 // BTstack objects
 static btstack_packet_callback_registration_t hci_event_callback_registration;
@@ -53,6 +54,12 @@ uint8_t curr_FM(Telemetry telemetry) {
 int main() {
     stdio_init_all();
 
+    while (!tud_cdc_connected())
+    {
+        sleep_ms(500);
+    }
+    printf("Connected to computer\n");
+
     Radio radio;
     if (!radio.start())
     {
@@ -66,7 +73,7 @@ int main() {
     sleep_ms(10000);
     // Initialise the Wi-Fi/BLE chip
     if (cyw43_arch_init()) {
-        printf("Wi-Fi init failed\n");
+        printf("Bluetooth init failed\n");
         return -1;
     }
 
@@ -109,23 +116,21 @@ int main() {
     set_MAV_value(&MAV);
     set_SV_value(&SV);
     set_FM_value(&FM);
-
+    sleep_ms(10000);
     while (true) {
-        // sleep_ms(30000);
-        // printf("Latitude: %d Longitude: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d\n" , lat_val, long_val, PT3, PT4, MAV, SV, FM);
-        // lat_val += 1000;
-        // set_latitude_value(&lat_val);
-        bool success = radio.read(&telemetry);
+        std::vector<Telemetry> telemetry_packets;
+        bool success = radio.read(telemetry_packets);
         if (success) {
-            printf("Success");
-            MAV=curr_MAV_state(telemetry);
-            SV=curr_SV_state(telemetry);
-            FM=curr_FM(telemetry);
-            printf("Lat: %d Long: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d\n",telemetry.gps_latitude, telemetry.gps_longitude, telemetry.pressure_pt3, telemetry.pressure_pt4, MAV, SV, FM);
-            set_All(&telemetry.gps_latitude,&telemetry.gps_longitude,&telemetry.pressure_pt3,&telemetry.pressure_pt4,&MAV,&SV,&FM);
-            sleep_ms(5000);
+            // printf("Success\n");
+            for (Telemetry &telemetry : telemetry_packets)
+            {
+                lat_val=telemetry.gps_latitude;
+                long_val=telemetry.gps_longitude;
+                PT3=telemetry.pressure_pt3;
+                PT4=telemetry.pressure_pt4;
+                set_All(&lat_val,&long_val,&PT3,&PT4,&MAV,&SV,&FM);
+                // printf("Lat: %d Long: %d PT3: %.3f PT4: %.3f\n",telemetry.gps_latitude, telemetry.gps_longitude, telemetry.pressure_pt3, telemetry.pressure_pt4);
+            }
         }
-        sleep_ms(500);
     }
-
 }
