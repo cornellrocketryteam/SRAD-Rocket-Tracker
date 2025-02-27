@@ -39,6 +39,10 @@ typedef struct {
     char * 		FM_value ;
 	char * 		FM_user_description ;
 
+	// Packet Recived Information
+	char * 		PT_value ;
+	char * 		PT_user_description ;
+
 	// Characteristic latitude handles
 	uint16_t  	latitude_handle ;
 	uint16_t 	latitude_user_description_handle ;
@@ -81,6 +85,12 @@ typedef struct {
 	uint16_t    FM_client_configuration ;
 	uint16_t    FM_client_configuration_handle ;
 
+	// Characteristic PT handles
+	uint16_t  	PT_handle ;
+	uint16_t 	PT_user_description_handle ;
+	uint16_t    PT_client_configuration ;
+	uint16_t    PT_client_configuration_handle ;
+
 	// Callback functions
 	btstack_context_callback_registration_t callback_lat ;
     btstack_context_callback_registration_t callback_long ;
@@ -89,6 +99,7 @@ typedef struct {
     btstack_context_callback_registration_t callback_MAV ;
     btstack_context_callback_registration_t callback_SV ;
     btstack_context_callback_registration_t callback_FM ;
+	btstack_context_callback_registration_t callback_Packet ;
 
 } GYATT_DB ;
 
@@ -104,6 +115,7 @@ char char_PT4[] = "PT4 - PSI" ;
 char char_MAV[] = "MAV State" ;
 char char_SV[] = "SV State" ;
 char char_FM[] = "Flightmode" ;
+char char_PT[] = "Seconds Since Last Packet" ;
 
 // Callback functions for ATT notifications on characteristics
 static void characteristic_latitude_callback(void * context){
@@ -153,6 +165,13 @@ static void characteristic_FM_callback(void * context){
 	GYATT_DB * instance = (GYATT_DB *) context ;
 	// Send a notification
 	att_server_notify(instance->con_handle, instance->FM_handle, (uint8_t*)instance->FM_value, strlen(instance->FM_value)) ;
+}
+
+static void characteristic_PT_callback(void * context){
+	// Associate the void pointer input with our custom service object
+	GYATT_DB * instance = (GYATT_DB *) context ;
+	// Send a notification
+	att_server_notify(instance->con_handle, instance->PT_handle, (uint8_t*)instance->PT_value, strlen(instance->PT_value)) ;
 }
 
 // Read callback (no client configuration handles on characteristics without Notify)
@@ -235,6 +254,17 @@ static uint16_t custom_service_read_callback(hci_con_handle_t con_handle, uint16
 	if (attribute_handle == service_object.FM_client_configuration_handle){
         return att_read_callback_handle_little_endian_16(service_object.FM_client_configuration, offset, buffer, buffer_size);
     }
+
+	// Characteristic PT
+	if (attribute_handle == service_object.PT_handle){
+		return att_read_callback_handle_blob((uint8_t*)service_object.PT_value, strlen(service_object.PT_value), offset, buffer, buffer_size);
+	}
+	if (attribute_handle == service_object.PT_user_description_handle) {
+		return att_read_callback_handle_blob((uint8_t*)service_object.PT_user_description, strlen(service_object.PT_user_description), offset, buffer, buffer_size);
+	}
+	if (attribute_handle == service_object.PT_client_configuration_handle){
+        return att_read_callback_handle_little_endian_16(service_object.PT_client_configuration, offset, buffer, buffer_size);
+    }
     return 0;
 }
 
@@ -243,7 +273,6 @@ static int custom_service_write_callback(hci_con_handle_t con_handle, uint16_t a
     UNUSED(transaction_mode);
     UNUSED(offset);
     UNUSED(buffer_size);
-
 	// Enable/disable notifications - Lat
     if (attribute_handle == service_object.latitiude_client_configuration_handle){
         service_object.latitiude_client_configuration = little_endian_read_16(buffer, 0);
@@ -279,6 +308,11 @@ static int custom_service_write_callback(hci_con_handle_t con_handle, uint16_t a
         service_object.FM_client_configuration = little_endian_read_16(buffer, 0);
         service_object.con_handle = con_handle;
     }
+	// Enable/disable notifications - Packet Time
+	if (attribute_handle == service_object.PT_client_configuration_handle){
+		service_object.PT_client_configuration = little_endian_read_16(buffer, 0);
+		service_object.con_handle = con_handle;
+	}
 	return 0;
 
 }
@@ -286,9 +320,8 @@ static int custom_service_write_callback(hci_con_handle_t con_handle, uint16_t a
 ////////////////////////////// USER API /////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
-void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr, char * PT4_ptr, char * MAV_ptr, char * SV_ptr, char * FM_ptr)
+void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr, char * PT4_ptr, char * MAV_ptr, char * SV_ptr, char * FM_ptr, char * PT_ptr)
 {
-
     // Pointer to our service object
 	GYATT_DB * instance = &service_object ;
 
@@ -300,6 +333,7 @@ void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr,
 	instance->MAV_value = MAV_ptr ;
 	instance->SV_value = SV_ptr ;
     instance->FM_value = FM_ptr ;
+	instance->PT_value = PT_ptr ;
 
     // Assign characteristic user description
 	instance->latitude_user_description = char_lat;
@@ -309,6 +343,7 @@ void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr,
 	instance->MAV_user_description = char_MAV ;
 	instance->SV_user_description = char_SV ;
     instance->FM_user_description = char_FM ;
+	instance->PT_user_description = char_PT ;
 
     // Assigning Characteristic Handles
     instance->latitude_handle=ATT_CHARACTERISTIC_00000002_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE ;
@@ -325,6 +360,8 @@ void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr,
     instance->SV_user_description_handle=ATT_CHARACTERISTIC_00000007_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
     instance->FM_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
     instance->FM_user_description_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
+	instance->PT_handle=ATT_CHARACTERISTIC_00000009_0000_0715_2006_853A52A41A44_01_VALUE_HANDLE;
+	instance->PT_user_description_handle=ATT_CHARACTERISTIC_00000009_0000_0715_2006_853A52A41A44_01_USER_DESCRIPTION_HANDLE;
 
 	instance->latitiude_client_configuration_handle=ATT_CHARACTERISTIC_00000002_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
     instance->longitude_client_configuration_handle=ATT_CHARACTERISTIC_00000003_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
@@ -333,6 +370,7 @@ void custom_service_server_init(char * lat_ptr, char * long_ptr, char * PT3_ptr,
     instance->MAV_client_configuration_handle=ATT_CHARACTERISTIC_00000006_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
     instance->SV_client_configuration_handle=ATT_CHARACTERISTIC_00000007_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
     instance->FM_client_configuration_handle=ATT_CHARACTERISTIC_00000008_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
+	instance->PT_client_configuration_handle=ATT_CHARACTERISTIC_00000009_0000_0715_2006_853A52A41A44_01_CLIENT_CONFIGURATION_HANDLE;
     
 
     // Service Start and End Handles
@@ -462,7 +500,24 @@ void set_FM_value(int * value){
 	}
 }
 
-void set_All(int32_t * latitude, int32_t * longitude, float * PT3, float * PT4, bool * MAV, bool * SV, int * FM) {
+// Update PT value
+void set_PT_value(int * value){
+
+	// Pointer to our service object
+	GYATT_DB * instance = &service_object ;
+
+	// Update field value
+	sprintf(instance->PT_value, "%d", *value) ;
+
+	if (instance->PT_client_configuration) {
+		// Register a callback
+		instance->callback_Packet.callback = characteristic_PT_callback;
+		instance->callback_Packet.context  = (void*) instance;
+		att_server_register_can_send_now_callback(&instance->callback_Packet, instance->con_handle);
+	}
+}
+
+void set_All(int32_t * latitude, int32_t * longitude, float * PT3, float * PT4, bool * MAV, bool * SV, int * FM, int * PT) {
 	set_latitude_value(latitude);
 	set_longitude_value(longitude);
 	set_PT3_value(PT3);
@@ -470,4 +525,5 @@ void set_All(int32_t * latitude, int32_t * longitude, float * PT3, float * PT4, 
 	set_MAV_value(MAV);
 	set_SV_value(SV);
 	set_FM_value(FM);
+	set_PT_value(PT);
 }

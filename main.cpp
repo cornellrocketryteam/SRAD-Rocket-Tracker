@@ -9,6 +9,7 @@
 
 // Hardware API's
 #include "hardware/sync.h"
+#include "pico/time.h"
 
 // GAP and GATT
 #include "GAP_Advertisement/gap_config.h"
@@ -31,6 +32,7 @@ char PT4_bytes[100];
 char MAV_bytes[100]; 
 char SV_bytes[100];
 char FM_bytes[100];
+char PT_bytes[100];
 
 bool getBit(uint16_t metadata, int position) // position in range 0-15
 {
@@ -75,7 +77,7 @@ int main() {
     // Initialize ATT server, no general read/write callbacks because we set one up for each service
     att_server_init(profile_data, NULL, NULL);
     // Instantiate our custom service handler
-    custom_service_server_init(lat_bytes, long_bytes, PT3_bytes, PT4_bytes, MAV_bytes, SV_bytes, FM_bytes);
+    custom_service_server_init(lat_bytes, long_bytes, PT3_bytes, PT4_bytes, MAV_bytes, SV_bytes, FM_bytes, PT_bytes);
     // inform about BTstack state
     hci_event_callback_registration.callback = &packet_handler;
     hci_add_event_handler(&hci_event_callback_registration);
@@ -93,6 +95,9 @@ int main() {
     bool MAV = 0;
     bool SV = 0;
     int FM = 0;
+    int PT = time_us_64()/1000000.0;
+    int time_recived= time_us_64();
+
 
     printf("Should have intialized\n");
     set_latitude_value(&lat_val);
@@ -102,12 +107,15 @@ int main() {
     set_MAV_value(&MAV);
     set_SV_value(&SV);
     set_FM_value(&FM);
+    set_PT_value(&PT);
     sleep_ms(10000);
+    int Old=-1;
     while (true) {
         std::vector<Telemetry> telemetry_packets;
         bool success = radio.read(telemetry_packets);
         if (success) {
             printf("Success\n");
+            time_recived=time_us_64();
             for (Telemetry &telemetry : telemetry_packets)
             {
                 FM = getFM(telemetry.metadata);
@@ -117,9 +125,15 @@ int main() {
                 long_val=telemetry.gps_longitude;
                 PT3=telemetry.pressure_pt3;
                 PT4=telemetry.pressure_pt4;
-                set_All(&lat_val,&long_val,&PT3,&PT4,&MAV,&SV,&FM);
-                printf("Lat: %d Long: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d\n",telemetry.gps_latitude, telemetry.gps_longitude, telemetry.pressure_pt3, telemetry.pressure_pt4, MAV,SV, FM);
+                PT=0;
+                set_All(&lat_val,&long_val,&PT3,&PT4,&MAV,&SV,&FM, &PT);
+                printf("Lat: %d Long: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d PT: %d\n",telemetry.gps_latitude, telemetry.gps_longitude, telemetry.pressure_pt3, telemetry.pressure_pt4, MAV,SV, FM, PT);
             }
+        }
+        PT=absolute_time_diff_us(time_recived,time_us_64())/1000000.0;
+        if (PT>Old) {
+            set_PT_value(&PT);
+            Old=PT;
         }
     }
 }
