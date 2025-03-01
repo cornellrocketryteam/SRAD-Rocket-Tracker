@@ -8,7 +8,10 @@
 #include "radio.hpp"
 #include "hardware/uart.h"
 #include "hardware/gpio.h"
+#include "hardware/uart.h"
 #include "telemetry.hpp"
+#include "time.h"
+#include "pico/time.h"
 #include "pins.hpp"
 #include <cstdio>
 #include <sstream>
@@ -30,7 +33,7 @@
 
 const uint32_t SYNC_WORD = 0x43525421;
 
-const size_t PACKET_SIZE = 102 + sizeof(SYNC_WORD);
+const size_t PACKET_SIZE = sizeof(Telemetry) + sizeof(SYNC_WORD);
 
 void print_buffer_hex(const char *buffer, size_t size)
 {
