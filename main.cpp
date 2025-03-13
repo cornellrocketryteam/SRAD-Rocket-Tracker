@@ -6,6 +6,7 @@
 #include "btstack_config.h"
 #include "btstack.h"
 #include "SRAD_RT_db.h"
+#include <cmath>
 
 // Hardware API's
 #include "hardware/sync.h"
@@ -43,6 +44,12 @@ int getFM(uint16_t metadata) // position in range 0-15
 {
     return (metadata >> 13) & 0x07; // 000 - Startup, 001 - Standbye, 010 - Ascent, 011 Drogue Deployed, 100 - Main Deployed, 101 - Fault - Finalized 13-15 bits = FM
 }
+
+bool compare_float(float x, float y, float epsilon = 0.001f){
+    if(fabs(x - y) <= epsilon)
+       return true; //they are same
+    return false; //they are not same
+ }
 
 
 int main() {
@@ -95,6 +102,9 @@ int main() {
     bool MAV = 0;
     bool SV = 0;
     int FM = 0;
+    int MAVtemp = -1;
+    int SVtemp = -1;
+    int FMtemp = -1;
     int PT = time_us_64()/1000000.0;
     int time_recived= time_us_64();
 
@@ -118,16 +128,42 @@ int main() {
             time_recived=time_us_64();
             for (Telemetry &telemetry : telemetry_packets)
             {
-                FM = getFM(telemetry.metadata);
-                MAV = getBit(telemetry.metadata, 11);
-                SV = getBit(telemetry.metadata, 12);
-                lat_val=telemetry.gps_latitude;
-                long_val=telemetry.gps_longitude;
-                PT3=telemetry.pressure_pt3;
-                PT4=telemetry.pressure_pt4;
+                FMtemp = getFM(telemetry.metadata);
+                MAVtemp = getBit(telemetry.metadata, 11);
+                SVtemp = getBit(telemetry.metadata, 12);
+                if (MAVtemp != MAV)
+                {
+                    MAV=MAVtemp;
+                    set_MAV_value(&MAV);
+                }
+                if (SVtemp != SV)
+                {
+                    SV=SVtemp;
+                    set_SV_value(&SV);
+                }
+                if (FMtemp != FM)
+                {
+                    FM=FMtemp;
+                    set_FM_value(&FM);
+                }
+                if (!compare_float(telemetry.pressure_pt3, PT3))
+                {
+                    PT3=telemetry.pressure_pt3;
+                    set_PT3_value(&PT3);
+                }
+                if (telemetry.gps_latitude!=lat_val)
+                {
+                    lat_val=telemetry.gps_latitude;
+                    set_latitude_value(&lat_val);
+                }
+                if (telemetry.gps_longitude!=long_val)
+                {
+                    long_val=telemetry.gps_longitude;
+                    set_longitude_value(&long_val);
+                }
                 PT=0;
-                set_All(&lat_val,&long_val,&PT3,&PT4,&MAV,&SV,&FM, &PT);
-                printf("Lat: %d Long: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d PT: %d\n",telemetry.gps_latitude, telemetry.gps_longitude, telemetry.pressure_pt3, telemetry.pressure_pt4, MAV,SV, FM, PT);
+                set_PT_value(&PT);
+                printf("Lat: %d Long: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d PT: %d\n",telemetry.gps_latitude, telemetry.gps_longitude, telemetry.pressure_pt3, telemetry.pressure_pt4, MAV, SV, FM, PT);
             }
         }
         PT=absolute_time_diff_us(time_recived,time_us_64())/1000000.0;

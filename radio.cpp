@@ -88,7 +88,7 @@ bool Radio::read(std::vector<Telemetry> &result)
     {
         const char c = uart_getc(UART_PORT);
 
-        // debug_log("Received character: %c\n", c);
+        debug_log("Received character: %c\n", c);
         // Append the character to the response buffer if there's space
         if (end_index < BUFFER_SIZE)
         {

@@ -17,8 +17,9 @@ static uint8_t adv_data[] = {
     0x02, BLUETOOTH_DATA_TYPE_FLAGS, APP_AD_FLAGS,
     // Name
     0x05, BLUETOOTH_DATA_TYPE_COMPLETE_LOCAL_NAME, 'P', 'i', 'c', 'o',
-    // Custom Service UUID
-    0x03, BLUETOOTH_DATA_TYPE_COMPLETE_LIST_OF_16_BIT_SERVICE_CLASS_UUIDS, 0x10, 0xFF,
+    // Custom Service UUID (128-bit)
+    0x11, BLUETOOTH_DATA_TYPE_COMPLETE_LIST_OF_128_BIT_SERVICE_CLASS_UUIDS,
+    0x44, 0x1A, 0xA4, 0x52, 0x3A, 0x85, 0x06, 0x20, 0x15, 0x07, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00
 };
 static const uint8_t adv_data_len = sizeof(adv_data);
 
