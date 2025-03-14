@@ -55,11 +55,11 @@ bool compare_float(float x, float y, float epsilon = 0.001f){
 int main() {
     stdio_init_all();
 
-    while (!tud_cdc_connected()) // Comment out for final
-    {
-        sleep_ms(500);
-    }
-    printf("Connected to computer\n");
+    // while (!tud_cdc_connected()) // Comment out for final
+    // {
+    //     sleep_ms(500);
+    // }
+    // printf("Connected to computer\n");
 
     Radio radio;
     if (!radio.start())
