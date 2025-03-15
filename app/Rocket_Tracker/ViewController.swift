@@ -9,17 +9,20 @@ import UIKit
 import Foundation
 import CoreBluetooth
 import MapKit
+import CoreLocation
 
 // Initialize global variables
 var curPeripheral: CBPeripheral?
-//var txCharacteristic: CBCharacteristic?
-//var rxCharacteristic: CBCharacteristic?
 var rxCharacteristics: [CBCharacteristic] = []
 var txCharacteristics: [CBCharacteristic] = []
 var BLE_uuid_rx: [CBUUID] = []
 var BLE_uuid_tx: [CBUUID] = []
+var latitude:Int = 0
+var longitude:Int = 0
+let pin = MKPointAnnotation()
+var done: Int = 0
 
-class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate {
+class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate, CLLocationManagerDelegate {
     
     // Variable Initializations
     var centralManager: CBCentralManager!
@@ -27,7 +30,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     var peripheralList: [CBPeripheral] = []
     var characteristicList = [String: CBCharacteristic]()
     var characteristicValue = [CBUUID: NSData]()
-    var timer = Timer()
     
     let BLE_Service_UUID = CBUUID.init(string: "00000001-0000-0715-2006-853A52A41A44")
     let BLE_Lat_uuid_Rx = CBUUID.init(string: "00000002-0000-0715-2006-853A52A41A44")
@@ -58,12 +60,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var svButton: UIButton!
     @IBOutlet weak var ptLbl: UILabel!
     @IBOutlet weak var refreshBtn: UIBarButtonItem!
-    
+    let manager = CLLocationManager()
+    var currentLocation: CLLocation?
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Set the label to say "Disconnected" and make the text red
         
+        manager.desiredAccuracy = kCLLocationAccuracyBest
+        manager.delegate = self
+        manager.requestWhenInUseAuthorization()
+        manager.startUpdatingLocation()
+        manager.startUpdatingHeading()
         connectStatusLbl.text = "Disconnected"
         connectStatusLbl.textColor = UIColor.red
         ptLbl.text = "Have Not Recived"
@@ -78,6 +85,65 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         centralManager = CBCentralManager(delegate: self, queue: nil)
         refreshBtn.target = self
         refreshBtn.action = #selector(refreshBtnClicked)
+        
+        // Add a tap gesture recognizer to all buttons
+        addTapGesture(to: fmButton, action: #selector(fmButtonTapped))
+        addTapGesture(to: pt3Button, action: #selector(pt3ButtonTapped))
+        addTapGesture(to: pt4Button, action: #selector(pt4ButtonTapped))
+        addTapGesture(to: mavButton, action: #selector(mavButtonTapped))
+        addTapGesture(to: svButton, action: #selector(svButtonTapped))
+        addTapGesture(to: distanceButton, action: #selector(distanceButtonTapped))
+    }
+    
+    // Helper function to add tap gesture recognizers
+    func addTapGesture(to button: UIButton, action: Selector) {
+        let tapGesture = UITapGestureRecognizer(target: self, action: action)
+        button.addGestureRecognizer(tapGesture)
+        button.isUserInteractionEnabled = true // Enable user interaction
+    }
+    
+    @objc func fmButtonTapped() {
+        requestCharacteristicValue(for: BLE_FM_uuid_Rx)
+    }
+
+    @objc func pt3ButtonTapped() {
+        requestCharacteristicValue(for: BLE_PT3_uuid_Rx)
+    }
+
+    @objc func pt4ButtonTapped() {
+        requestCharacteristicValue(for: BLE_PT4_uuid_Rx)
+    }
+
+    @objc func mavButtonTapped() {
+        requestCharacteristicValue(for: BLE_MAV_uuid_Rx)
+    }
+
+    @objc func svButtonTapped() {
+        requestCharacteristicValue(for: BLE_SV_uuid_Rx)
+    }
+
+    @objc func distanceButtonTapped() {
+        // Request both latitude and longitude characteristics
+        requestCharacteristicValue(for: BLE_Lat_uuid_Rx)
+        requestCharacteristicValue(for: BLE_Long_uuid_Rx)
+    }
+
+    // Helper function to request characteristic value
+    func requestCharacteristicValue(for uuid: CBUUID) {
+        // Check if the peripheral is connected
+        guard let peripheral = curPeripheral, peripheral.state == .connected else {
+            print("Bluetooth is not connected")
+            return
+        }
+        
+        // Find the characteristic with the specified UUID
+        if let characteristic = rxCharacteristics.first(where: { $0.uuid == uuid }) {
+            // Manually read the value for the characteristic
+            peripheral.readValue(for: characteristic)
+            print("Manually requested value for characteristic: \(uuid)")
+        } else {
+            print("Characteristic not found for UUID: \(uuid)")
+        }
     }
     
     // This function is called right after the view is loaded onto the screen
@@ -137,17 +203,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         // Make an empty list of peripherals that were found
         peripheralList = []
         
-        // Stop the timer
-//        self.timer.invalidate()
-        
-        // Call method in centralManager class that actually begins the scanning.
-        // We are targeting services that have the same UUID value as the BLE_Service_UUID variable.
-        // Use a timer to wait 100 seconds before calling cancelScan().
         centralManager?.scanForPeripherals(withServices: [BLE_Service_UUID],
                                            options: [CBCentralManagerScanOptionAllowDuplicatesKey:false])
-//        Timer.scheduledTimer(withTimeInterval: 10, repeats: false) {_ in
-//            self.cancelScan()
-//        }
     }
     
 // Cancel scanning for peripheral
@@ -325,11 +382,17 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         switch characteristic.uuid {
         case BLE_Lat_uuid_Rx:
-            //printContent(receivedString as String)
-            break
+            if let latValue = Int(receivedString as String) {
+                latitude = latValue
+            }
+            else {print("Error with Parsing Latitiude")}
         case BLE_Long_uuid_Rx:
-            //printContent(receivedString as String)
-            break
+            if let longValue = Int(receivedString as String) {
+                longitude = longValue
+                renderLoc(currlat: latitude, currlong: longitude)
+                updateDistanceToPin()
+            }
+            else {print("Error with Parsing longitude")}
         case BLE_PT3_uuid_Rx:
             // Convert the received string to a Float
             if let floatValue = Float(receivedString as String) {
@@ -355,7 +418,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         case BLE_MAV_uuid_Rx:
             if let intValue = Int(receivedString as String) {
                 // Map 1 to "Open" and 0 to "Close"
-                let status = (intValue == 1) ? "Open" : "Close"
+                let status = (intValue == 1) ? "Opened" : "Closed"
                 // Update the button's title
                 mavButton.setTitle("MAV: \(status)", for: .normal)
             } else {
@@ -365,7 +428,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         case BLE_SV_uuid_Rx:
             if let intValue = Int(receivedString as String) {
                 // Map 1 to "Open" and 0 to "Close"
-                let status = (intValue == 1) ? "Open" : "Close"
+                let status = (intValue == 1) ? "Opened" : "Closed"
                 // Update the button's title
                 svButton.setTitle("SV: \(status)", for: .normal)
             } else {
@@ -373,9 +436,35 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 svButton.setTitle("SV: Invalid Value", for: .normal)
             }
         case BLE_FM_uuid_Rx:
-            fmButton.setTitle("FM: " + (receivedString as String), for: .normal)
+            if let intValue = Int(receivedString as String) {
+                switch intValue
+                {
+                case 0:
+                    fmButton.setTitle("FM: Startup", for: .normal)
+                case 1:
+                    fmButton.setTitle("FM: Standbye", for: .normal)
+                case 2:
+                    fmButton.setTitle("FM: Ascent", for: .normal)
+                case 3:
+                    fmButton.setTitle("FM: Drogue Deployed", for: .normal)
+                case 4:
+                    fmButton.setTitle("FM: Main Deployed", for: .normal)
+                default:
+                    fmButton.setTitle("FM: Invalid", for: .normal)
+                }
+            }
+            else {fmButton.setTitle("FM: Invalid", for: .normal)}
         case BLE_PT_uuid_Rx:
-            ptLbl.text = "PT: " + (receivedString as String)
+            if let intValue = Int(receivedString as String) {
+                if (intValue < 300) {
+                    ptLbl.text = "PT: " + (receivedString as String)
+                }
+                else {ptLbl.text = "PT: > 5 Minutes"}
+            } else {
+                // Handle the case where the string cannot be converted to an Int
+                ptLbl.text = "PT: Invalid Value"
+            }
+            
         default:
             print("Unknown characteristic: \(characteristic.uuid)")
         }
@@ -407,8 +496,6 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         // For every descriptor, print its description for debugging purposes
         descriptors.forEach { descript in
             print("function name: DidDiscoverDescriptorForChar \(String(describing: descript.description))")
-//            print("Rx Value \(String(describing: rxCharacteristic?.value))")
-//            print("Tx Value \(String(describing: txCharacteristic?.value))")
         }
     }
     
@@ -426,6 +513,93 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         print("Manually fetched all Bluetooth values")
         
+    }
+    
+    func renderLoc(currlat: Int, currlong: Int) {
+        mapView.removeAnnotation(pin)
+        let lat = CLLocationDegrees(currlat) / 1000000.0
+        let long = CLLocationDegrees(currlong) / 1000000.0
+        let launchVehicle = CLLocationCoordinate2D(latitude: lat, longitude: long)
+        if (done<=4){
+            let span = MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+            let region = MKCoordinateRegion(center: launchVehicle, span: span)
+            mapView.setRegion(region, animated: true)
+            done += 1
+        }
+        pin.coordinate = launchVehicle
+        mapView.addAnnotation(pin)
+        
+        print("Placed Marker")
+        
+    }
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.last {
+            currentLocation = location
+            updateArrowDirection()
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+        // Update the arrow's rotation whenever the heading changes
+        updateArrowDirection()
+    }
+    
+    func calculateBearing(from source: CLLocationCoordinate2D, to destination: CLLocationCoordinate2D) -> Double {
+        let lat1 = (source.latitude * .pi / 180)
+        let lon1 = (source.longitude * .pi / 180)
+        let lat2 = (destination.latitude * .pi / 180)
+        let lon2 = (destination.longitude * .pi / 180)
+
+        let dLon = lon2 - lon1
+
+        let y = sin(dLon) * cos(lat2)
+        let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+        let radiansBearing = atan2(y, x)
+
+        return (radiansBearing * 180 / .pi)
+    }
+    
+    func updateArrowDirection() {
+        guard let currentLocation = currentLocation else { return }
+
+        // Get the rocket's location
+        let rocketLocation = CLLocationCoordinate2D(latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude)
+
+        // Calculate the bearing to the rocket
+        let bearing = calculateBearing(from: currentLocation.coordinate, to: rocketLocation)
+
+        // Get the device's current heading (compass direction)
+        guard let heading = manager.heading?.trueHeading else { return }
+
+        // Calculate the angle to rotate the arrow
+        let angle = ((bearing - heading) * .pi / 180)
+
+        // Apply the rotation to the arrowBtn
+        arrowBtn.transform = CGAffineTransform(rotationAngle: CGFloat(angle))
+    }
+    
+    
+    func updateDistanceToPin() {
+        // Ensure current location and pin are available
+        guard let currentLocation = currentLocation else {
+            print("Current location not available")
+            return
+        }
+        
+        // Get the pin's location
+        let pinLocation = CLLocation(latitude: pin.coordinate.latitude, longitude: pin.coordinate.longitude)
+        
+        // Calculate the distance in meters
+        let distanceInMeters = currentLocation.distance(from: pinLocation)
+        
+        // Convert distance to feet
+        let distanceInFeet = distanceInMeters * 3.28084
+        
+        // Update the UI or print the distance
+        print("Distance to pin: \(distanceInFeet) feet")
+        
+        // Example: Update a label with the distance
+        distanceButton.setTitle(String(format: "Distance to LV: %.2f Feet", distanceInFeet), for: .normal)
     }
 }
 

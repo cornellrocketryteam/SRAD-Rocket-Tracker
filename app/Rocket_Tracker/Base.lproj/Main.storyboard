@@ -74,12 +74,12 @@
                                 <color key="textColor" systemColor="systemRedColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pitchEnabled="NO" showsUserLocation="YES" showsPointsOfInterest="NO" showsScale="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Hnd-4G-5cX" userLabel="mapView">
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pitchEnabled="NO" showsUserLocation="YES" showsPointsOfInterest="NO" showsScale="YES" pitchButtonVisibility="adaptive" showsUserTrackingButton="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Hnd-4G-5cX" userLabel="mapView">
                                 <rect key="frame" x="40" y="232" width="360" height="165"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="165" id="6eb-VM-g8v"/>
                                 </constraints>
-                                <standardMapConfiguration key="preferredConfiguration" elevationStyle="realistic"/>
+                                <imageryMapConfiguration key="preferredConfiguration" elevationStyle="realistic"/>
                             </mapView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VgT-VE-Loj" userLabel="svButton">
                                 <rect key="frame" x="232.66666666666663" y="653" width="167.33333333333337" height="52"/>

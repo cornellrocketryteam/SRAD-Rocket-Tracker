@@ -294,6 +294,7 @@
 				INFOPLIST_FILE = Rocket_Tracker/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Requires Bluetooth in Order to Locate the Launch Vehicle";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Requires Bluetooth in Order to Locate the Launch Vehicle";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Requires Location in Order to Accurately Navigate to the Launch Vehicle";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -324,6 +325,7 @@
 				INFOPLIST_FILE = Rocket_Tracker/Info.plist;
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Requires Bluetooth in Order to Locate the Launch Vehicle";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Requires Bluetooth in Order to Locate the Launch Vehicle";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Requires Location in Order to Accurately Navigate to the Launch Vehicle";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
