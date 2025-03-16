@@ -292,6 +292,7 @@
 				DEVELOPMENT_TEAM = 7J9X73JUPD;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Rocket_Tracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Find My Rocket";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Requires Bluetooth in Order to Locate the Launch Vehicle";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Requires Bluetooth in Order to Locate the Launch Vehicle";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Requires Location in Order to Accurately Navigate to the Launch Vehicle";
@@ -323,6 +324,7 @@
 				DEVELOPMENT_TEAM = 7J9X73JUPD;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Rocket_Tracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Find My Rocket";
 				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Requires Bluetooth in Order to Locate the Launch Vehicle";
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "Requires Bluetooth in Order to Locate the Launch Vehicle";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Requires Location in Order to Accurately Navigate to the Launch Vehicle";
