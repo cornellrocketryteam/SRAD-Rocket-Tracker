@@ -34,6 +34,7 @@ char MAV_bytes[100];
 char SV_bytes[100];
 char FM_bytes[100];
 char PT_bytes[100];
+bool recived_first = false;
 
 bool getBit(uint16_t metadata, int position) // position in range 0-15
 {
@@ -117,13 +118,14 @@ int main() {
     set_MAV_value(&MAV);
     set_SV_value(&SV);
     set_FM_value(&FM);
-    set_PT_value(&PT);
+    set_PT_value(&FM); //Just setting to a 0 value
     sleep_ms(10000);
     int Old=-1;
     while (true) {
         std::vector<Telemetry> telemetry_packets;
         bool success = radio.read(telemetry_packets);
         if (success) {
+            recived_first = true;
             printf("Success\n");
             time_recived=time_us_64();
             for (Telemetry &telemetry : telemetry_packets)
@@ -166,10 +168,15 @@ int main() {
                 printf("Lat: %d Long: %d PT3: %.3f PT4: %.3f MAV: %d SV: %d FM: %d PT: %d\n",telemetry.gps_latitude, telemetry.gps_longitude, telemetry.pressure_pt3, telemetry.pressure_pt4, MAV, SV, FM, PT);
             }
         }
-        PT=absolute_time_diff_us(time_recived,time_us_64())/1000000.0;
-        if (PT>Old) {
+        if (PT>Old && recived_first) {
+            PT=absolute_time_diff_us(time_recived,time_us_64())/1000000.0;
             set_PT_value(&PT);
             Old=PT;
+        }
+        else if (!recived_first)
+        {
+            PT=0;
+            set_PT_value(&PT);
         }
     }
 }
