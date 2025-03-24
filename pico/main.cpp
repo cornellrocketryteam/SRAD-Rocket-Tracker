@@ -96,8 +96,8 @@ int main() {
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
     
     // define starting blank values
-    int32_t lat_val = 0; // in micro degrees 10^-6
-    int32_t long_val = 0;
+    int32_t lat_val = 42454985; // in micro degrees 10^-6
+    int32_t long_val = -76477751;
     float PT3 = 0.00000f; // PT3 and 4 are to the 5th decimal point
     float PT4 = 0.00000f;
     bool MAV = 0;

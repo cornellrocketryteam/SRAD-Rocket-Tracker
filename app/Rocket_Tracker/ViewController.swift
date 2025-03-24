@@ -21,6 +21,10 @@ var latitude:Int = 0
 var longitude:Int = 0
 let pin = MKPointAnnotation()
 var done: Int = 0
+var firstRecived: Bool = false
+var currentLocation: CLLocation?
+var latcurr: CLLocationDegrees = 0
+var longcurr: CLLocationDegrees = 0
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate, CLLocationManagerDelegate {
     
@@ -60,11 +64,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     @IBOutlet weak var svButton: UIButton!
     @IBOutlet weak var ptLbl: UILabel!
     @IBOutlet weak var refreshBtn: UIBarButtonItem!
+    @IBOutlet weak var coordsLbl: UILabel!
     let manager = CLLocationManager()
-    var currentLocation: CLLocation?
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let tripleTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTripleTap(_:)))
+        tripleTapGesture.numberOfTapsRequired = 3  // triple-tap
+        mapView.addGestureRecognizer(tripleTapGesture)
         
         manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.delegate = self
@@ -384,6 +392,16 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         case BLE_Lat_uuid_Rx:
             if let latValue = Int(receivedString as String) {
                 latitude = latValue
+                renderLoc(currlat: latitude, currlong: longitude)
+                updateDistanceToPin()
+                if (firstRecived) {
+                    let LatDeci=Double(latitude)/1000000
+                    let LongDeci=Double(longitude)/1000000
+                    coordsLbl.text = "Coordinates: (\(String(format: "%.6f", LatDeci)),\(String(format: "%.6f", LongDeci)))"
+                }
+                else {
+                    coordsLbl.text = "Coordinates: N/A"
+                }
             }
             else {print("Error with Parsing Latitiude")}
         case BLE_Long_uuid_Rx:
@@ -391,6 +409,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 longitude = longValue
                 renderLoc(currlat: latitude, currlong: longitude)
                 updateDistanceToPin()
+                if (firstRecived) {
+                    let LatDeci=Double(latitude)/1000000
+                    let LongDeci=Double(longitude)/1000000
+                    coordsLbl.text = "Coordinates: (\(String(format: "%.6f", LatDeci)),\(String(format: "%.6f", LongDeci)))"
+                }
+                else {
+                    coordsLbl.text = "Coordinates: N/A"
+                }
             }
             else {print("Error with Parsing longitude")}
         case BLE_PT3_uuid_Rx:
@@ -456,13 +482,22 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             else {fmButton.setTitle("FM: Invalid", for: .normal)}
         case BLE_PT_uuid_Rx:
             if let intValue = Int(receivedString as String) {
-                if (intValue < 300) {
-                    ptLbl.text = "PT: " + (receivedString as String)
+                if (intValue == 0 && !firstRecived) {
+                    ptLbl.text = "No Packet Has Been Recvied Yet"
                 }
-                else {ptLbl.text = "PT: > 5 Minutes"}
+                else if (intValue < 300) {
+                    firstRecived = true
+                    ptLbl.text = "Time Since The Last Packet: " + (receivedString as String)
+                    let LatDeci=Double(latitude)/1000000
+                    let LongDeci=Double(longitude)/1000000
+                    coordsLbl.text = "Coordinates: (\(String(format: "%.6f", LatDeci)),\(String(format: "%.6f", LongDeci)))"
+                }
+                else {
+                    firstRecived = true
+                    ptLbl.text = "Time Since The Last Packet: > 5 Minutes"}
             } else {
                 // Handle the case where the string cannot be converted to an Int
-                ptLbl.text = "PT: Invalid Value"
+                ptLbl.text = "Time Since The Last Packet: Invalid Value"
             }
             
         default:
@@ -519,6 +554,8 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         mapView.removeAnnotation(pin)
         let lat = CLLocationDegrees(currlat) / 1000000.0
         let long = CLLocationDegrees(currlong) / 1000000.0
+        latcurr = lat
+        longcurr = long
         let launchVehicle = CLLocationCoordinate2D(latitude: lat, longitude: long)
         if (done<=4){
             let span = MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
@@ -527,7 +564,9 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             done += 1
         }
         pin.coordinate = launchVehicle
-        mapView.addAnnotation(pin)
+        if firstRecived {
+            mapView.addAnnotation(pin)
+        }
         
         print("Placed Marker")
         
@@ -600,6 +639,15 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         // Example: Update a label with the distance
         distanceButton.setTitle(String(format: "Distance to LV: %.2f Feet", distanceInFeet), for: .normal)
+    }
+    
+    @objc func handleTripleTap(_ gesture: UITapGestureRecognizer) {
+        let storybaord = UIStoryboard(name: "Main", bundle: nil)
+        let MapStoryboard = storybaord.instantiateViewController(withIdentifier: "MapView") as! MapViewController
+        MapStoryboard.loadViewIfNeeded()
+        
+        
+        self.present(MapStoryboard, animated: true, completion: nil)
     }
 }
 

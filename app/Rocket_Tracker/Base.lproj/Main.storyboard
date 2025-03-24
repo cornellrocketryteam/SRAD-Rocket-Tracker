@@ -32,7 +32,7 @@
                                 </items>
                             </navigationBar>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cPO-bf-BrR" userLabel="distanceButton">
-                                <rect key="frame" x="40" y="422" width="360" height="52"/>
+                                <rect key="frame" x="40" y="438" width="360" height="52"/>
                                 <accessibility key="accessibilityConfiguration" label="distanceButton"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="52" id="Go9-4q-qMD"/>
@@ -41,7 +41,7 @@
                                 <buttonConfiguration key="configuration" style="filled" title="Button"/>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hPQ-s9-ghW" userLabel="fmButton">
-                                <rect key="frame" x="40" y="499" width="360" height="52"/>
+                                <rect key="frame" x="40" y="515" width="360" height="52"/>
                                 <accessibility key="accessibilityConfiguration" label="fmButton"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="52" id="Qwr-kx-Do3"/>
@@ -50,7 +50,7 @@
                                 <buttonConfiguration key="configuration" style="filled" title="Button"/>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="hve-XX-86x" userLabel="pt3Button">
-                                <rect key="frame" x="40" y="576" width="167.66666666666666" height="52"/>
+                                <rect key="frame" x="40" y="592" width="167.66666666666666" height="52"/>
                                 <accessibility key="accessibilityConfiguration" label="pt3Button"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="52" id="LcI-3C-cpo"/>
@@ -59,7 +59,7 @@
                                 <buttonConfiguration key="configuration" style="filled" title="Button"/>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="S0x-EU-sCD" userLabel="pt4Button">
-                                <rect key="frame" x="232.66666666666663" y="576" width="167.33333333333337" height="52"/>
+                                <rect key="frame" x="232.66666666666663" y="592" width="167.33333333333337" height="52"/>
                                 <accessibility key="accessibilityConfiguration" label="pt4Button"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="52" id="f7E-Jk-vN8"/>
@@ -75,14 +75,14 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pitchEnabled="NO" showsUserLocation="YES" showsPointsOfInterest="NO" showsScale="YES" pitchButtonVisibility="adaptive" showsUserTrackingButton="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Hnd-4G-5cX" userLabel="mapView">
-                                <rect key="frame" x="40" y="232" width="360" height="165"/>
+                                <rect key="frame" x="40" y="248" width="360" height="165"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="165" id="6eb-VM-g8v"/>
                                 </constraints>
                                 <imageryMapConfiguration key="preferredConfiguration" elevationStyle="realistic"/>
                             </mapView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VgT-VE-Loj" userLabel="svButton">
-                                <rect key="frame" x="232.66666666666663" y="653" width="167.33333333333337" height="52"/>
+                                <rect key="frame" x="232.66666666666663" y="669" width="167.33333333333337" height="52"/>
                                 <accessibility key="accessibilityConfiguration" label="svButton"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="52" id="c3W-JE-K80"/>
@@ -91,7 +91,7 @@
                                 <buttonConfiguration key="configuration" style="filled" title="Button"/>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XD7-3A-2Bv" userLabel="mavButton">
-                                <rect key="frame" x="40" y="653" width="167.66666666666666" height="52"/>
+                                <rect key="frame" x="40" y="669" width="167.66666666666666" height="52"/>
                                 <accessibility key="accessibilityConfiguration" label="mavButton"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="52" id="wgK-dc-Ors"/>
@@ -99,19 +99,25 @@
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Button"/>
                             </button>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="lCq-wP-CXp" userLabel="arrowBtn">
-                                <rect key="frame" x="190" y="132" width="61" height="75"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="lCq-wP-CXp" userLabel="arrowBtn">
+                                <rect key="frame" x="190" y="132" width="60" height="75"/>
                                 <color key="tintColor" systemColor="systemRedColor"/>
                                 <accessibility key="accessibilityConfiguration" label="arrowBtn"/>
                                 <imageReference key="image" image="location.north" catalog="system" symbolScale="large"/>
                                 <preferredSymbolConfiguration key="preferredSymbolConfiguration" configurationType="pointSize" pointSize="50" scale="large" weight="light"/>
                             </imageView>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Time Since" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kdp-2y-OXe" userLabel="ptLbl">
-                                <rect key="frame" x="178" y="715" width="84" height="21"/>
+                                <rect key="frame" x="178" y="731" width="84" height="21"/>
                                 <accessibility key="accessibilityConfiguration" label="ptLbl"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="21" id="kGz-vE-s3t"/>
                                 </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" systemColor="systemRedColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Coordinates: N/A" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9Rh-14-va4" userLabel="coordsLbl">
+                                <rect key="frame" x="0.0" y="219" width="440" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" systemColor="systemRedColor"/>
                                 <nil key="highlightedColor"/>
@@ -125,7 +131,6 @@
                             <constraint firstItem="cPO-bf-BrR" firstAttribute="top" secondItem="Hnd-4G-5cX" secondAttribute="bottom" constant="25" id="1AL-AL-fw8"/>
                             <constraint firstItem="hve-XX-86x" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="40" id="35u-Ey-hQ1"/>
                             <constraint firstItem="XD7-3A-2Bv" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="40" id="3OY-sY-mjq"/>
-                            <constraint firstItem="Hnd-4G-5cX" firstAttribute="top" secondItem="lCq-wP-CXp" secondAttribute="bottom" constant="32" id="4yC-WC-5ib"/>
                             <constraint firstItem="nCJ-cx-Bhu" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="66U-rV-ZOM"/>
                             <constraint firstItem="XD7-3A-2Bv" firstAttribute="top" secondItem="hve-XX-86x" secondAttribute="bottom" constant="25" id="7Kk-jo-uys"/>
                             <constraint firstItem="lCq-wP-CXp" firstAttribute="centerX" secondItem="Hnd-4G-5cX" secondAttribute="centerX" id="7x0-Nm-gmb"/>
@@ -135,19 +140,24 @@
                             <constraint firstItem="lCq-wP-CXp" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="190" id="CLR-wk-PtI"/>
                             <constraint firstItem="lCq-wP-CXp" firstAttribute="top" secondItem="bfC-LF-tub" secondAttribute="bottom" constant="8" id="CuR-nK-V9p"/>
                             <constraint firstItem="cPO-bf-BrR" firstAttribute="trailing" secondItem="hPQ-s9-ghW" secondAttribute="trailing" id="D0O-Z0-YZj"/>
+                            <constraint firstItem="Hnd-4G-5cX" firstAttribute="top" secondItem="lCq-wP-CXp" secondAttribute="bottom" constant="48" id="Dji-wK-Vbh"/>
                             <constraint firstItem="Hnd-4G-5cX" firstAttribute="trailing" secondItem="cPO-bf-BrR" secondAttribute="trailing" id="G3A-R6-VUf"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="VgT-VE-Loj" secondAttribute="trailing" constant="40" id="M76-R6-DEe"/>
-                            <constraint firstItem="kdp-2y-OXe" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="NwI-3M-B9Q"/>
+                            <constraint firstItem="Hnd-4G-5cX" firstAttribute="top" secondItem="9Rh-14-va4" secondAttribute="bottom" constant="8" id="NWd-Fx-5jh"/>
                             <constraint firstItem="cPO-bf-BrR" firstAttribute="leading" secondItem="hPQ-s9-ghW" secondAttribute="leading" id="Pzs-2h-mOx"/>
                             <constraint firstItem="Hnd-4G-5cX" firstAttribute="leading" secondItem="cPO-bf-BrR" secondAttribute="leading" id="Vcs-Gt-ZDt"/>
+                            <constraint firstItem="9Rh-14-va4" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="WBb-aJ-3Gr"/>
                             <constraint firstItem="S0x-EU-sCD" firstAttribute="top" secondItem="hPQ-s9-ghW" secondAttribute="bottom" constant="25" id="WcE-ct-k5g"/>
+                            <constraint firstItem="kdp-2y-OXe" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Yqo-Z2-whJ"/>
                             <constraint firstItem="VgT-VE-Loj" firstAttribute="top" secondItem="hve-XX-86x" secondAttribute="bottom" constant="25" id="fXf-nq-lq4"/>
                             <constraint firstItem="S0x-EU-sCD" firstAttribute="width" secondItem="hve-XX-86x" secondAttribute="width" id="gcF-Tc-BjQ"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="S0x-EU-sCD" secondAttribute="trailing" constant="40" id="hf6-qp-e7k"/>
                             <constraint firstItem="hPQ-s9-ghW" firstAttribute="top" secondItem="cPO-bf-BrR" secondAttribute="bottom" constant="25" id="ku6-2f-XfD"/>
                             <constraint firstItem="Hnd-4G-5cX" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="40" id="nDs-cf-iPX"/>
+                            <constraint firstItem="9Rh-14-va4" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="njP-dm-0Ug"/>
                             <constraint firstItem="S0x-EU-sCD" firstAttribute="leading" secondItem="hve-XX-86x" secondAttribute="trailing" constant="25" id="rQi-4C-SW2"/>
                             <constraint firstItem="nCJ-cx-Bhu" firstAttribute="centerX" secondItem="bfC-LF-tub" secondAttribute="centerX" id="uzh-Be-qMm"/>
+                            <constraint firstItem="9Rh-14-va4" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="vX7-WE-tqG"/>
                             <constraint firstItem="lCq-wP-CXp" firstAttribute="centerX" secondItem="bfC-LF-tub" secondAttribute="centerX" id="w5h-sp-dMH"/>
                             <constraint firstItem="hve-XX-86x" firstAttribute="top" secondItem="hPQ-s9-ghW" secondAttribute="bottom" constant="25" id="xUT-HT-5a4"/>
                             <constraint firstItem="VgT-VE-Loj" firstAttribute="width" secondItem="XD7-3A-2Bv" secondAttribute="width" id="y9B-pt-s29"/>
@@ -159,6 +169,7 @@
                     <connections>
                         <outlet property="arrowBtn" destination="lCq-wP-CXp" id="K38-gH-NQc"/>
                         <outlet property="connectStatusLbl" destination="bfC-LF-tub" id="cqb-y8-X6F"/>
+                        <outlet property="coordsLbl" destination="9Rh-14-va4" id="Q59-vV-AQz"/>
                         <outlet property="distanceButton" destination="cPO-bf-BrR" id="qFa-m8-sTk"/>
                         <outlet property="fmButton" destination="hPQ-s9-ghW" id="tJ9-N5-zMr"/>
                         <outlet property="mapView" destination="Hnd-4G-5cX" id="xhf-lB-fSm"/>
@@ -174,10 +185,63 @@
             </objects>
             <point key="canvasLocation" x="139.09090909090909" y="3.1380753138075317"/>
         </scene>
+        <!--Map View Controller-->
+        <scene sceneID="T3o-7k-e5m">
+            <objects>
+                <viewController storyboardIdentifier="MapView" id="HiQ-TD-Dxv" customClass="MapViewController" customModule="Rocket_Tracker" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="0Ia-uM-YcR">
+                        <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pitchEnabled="NO" showsUserLocation="YES" showsPointsOfInterest="NO" showsScale="YES" pitchButtonVisibility="adaptive" showsUserTrackingButton="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9WT-r3-QAv" userLabel="bigMapView">
+                                <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
+                                <color key="tintColor" systemColor="systemRedColor"/>
+                                <imageryMapConfiguration key="preferredConfiguration" elevationStyle="realistic"/>
+                            </mapView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="73j-SA-p0x">
+                                <rect key="frame" x="20" y="70" width="75" height="35"/>
+                                <color key="backgroundColor" systemColor="opaqueSeparatorColor"/>
+                                <accessibility key="accessibilityConfiguration" label="backButton"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="35" id="JQp-Gw-aIw"/>
+                                    <constraint firstAttribute="width" constant="75" id="q8H-wO-IwW"/>
+                                </constraints>
+                                <color key="tintColor" systemColor="systemRedColor"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="gray" title="Return"/>
+                                <connections>
+                                    <action selector="backButton:" destination="HiQ-TD-Dxv" eventType="touchUpInside" id="G8G-6t-asm"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="vRx-35-6cH"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="9WT-r3-QAv" firstAttribute="centerX" secondItem="0Ia-uM-YcR" secondAttribute="centerX" id="4DC-hy-NDC"/>
+                            <constraint firstItem="9WT-r3-QAv" firstAttribute="centerY" secondItem="0Ia-uM-YcR" secondAttribute="centerY" id="87C-26-Ict"/>
+                            <constraint firstItem="73j-SA-p0x" firstAttribute="leading" secondItem="vRx-35-6cH" secondAttribute="leading" constant="20" id="Vy9-QU-kUq"/>
+                            <constraint firstItem="9WT-r3-QAv" firstAttribute="top" secondItem="0Ia-uM-YcR" secondAttribute="top" id="ptl-89-jCM"/>
+                            <constraint firstItem="9WT-r3-QAv" firstAttribute="trailing" secondItem="vRx-35-6cH" secondAttribute="trailing" id="rq0-oO-egO"/>
+                            <constraint firstAttribute="bottom" secondItem="9WT-r3-QAv" secondAttribute="bottom" id="rqz-xU-QVQ"/>
+                            <constraint firstItem="9WT-r3-QAv" firstAttribute="leading" secondItem="vRx-35-6cH" secondAttribute="leading" id="uJL-U6-r92"/>
+                            <constraint firstItem="73j-SA-p0x" firstAttribute="top" secondItem="vRx-35-6cH" secondAttribute="top" constant="8" id="yhA-16-Sut"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="bigMapView" destination="9WT-r3-QAv" id="PQh-12-rK1"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="r7Y-tz-O7B" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="902.72727272727275" y="2.510460251046025"/>
+        </scene>
     </scenes>
     <resources>
         <image name="arrow.clockwise" catalog="system" width="110" height="128"/>
         <image name="location.north" catalog="system" width="110" height="128"/>
+        <systemColor name="opaqueSeparatorColor">
+            <color red="0.77647058820000003" green="0.77647058820000003" blue="0.7843137255" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
