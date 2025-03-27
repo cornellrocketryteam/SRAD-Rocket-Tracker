@@ -25,6 +25,8 @@ var firstRecived: Bool = false
 var currentLocation: CLLocation?
 var latcurr: CLLocationDegrees = 0
 var longcurr: CLLocationDegrees = 0
+var test: Bool = true
+var mavGlobal: Bool = false
 
 class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDelegate, CLLocationManagerDelegate {
     
@@ -53,6 +55,7 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
     let BLE_PT_uuid_Rx = CBUUID.init(string: "00000009-0000-0715-2006-853A52A41A44")
     let BLE_PT_uuid_Tx  = CBUUID.init(string: "00000009-0000-0715-2006-853A52A41A44")
     
+    @IBOutlet weak var approachCon: UIButton!
     @IBOutlet weak var arrowBtn: UIImageView!
     @IBOutlet weak var connectStatusLbl: UILabel!
     @IBOutlet weak var mapView: MKMapView!
@@ -82,12 +85,13 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         connectStatusLbl.text = "Disconnected"
         connectStatusLbl.textColor = UIColor.red
         ptLbl.text = "Have Not Recived"
-        distanceButton.setTitle("Distance to LV: ", for: .normal)
-        fmButton.setTitle("Flightmode: ", for: .normal)
-        pt3Button.setTitle("PT3: ", for: .normal)
-        pt4Button.setTitle("PT4: ", for: .normal)
-        mavButton.setTitle("MAV: ", for: .normal)
-        svButton.setTitle("SV: ", for: .normal)
+        distanceButton.setTitle("Distance to LV: N/A", for: .normal)
+        fmButton.setTitle("Flightmode: N/A", for: .normal)
+        pt3Button.setTitle("PT3: N/A", for: .normal)
+        pt4Button.setTitle("PT4: N/A", for: .normal)
+        mavButton.setTitle("MAV: N/A", for: .normal)
+        svButton.setTitle("SV: N/A", for: .normal)
+        approachCon.setTitle("Safe To Approach: N/A", for: .normal)
         BLE_uuid_rx += [BLE_Lat_uuid_Rx, BLE_Long_uuid_Rx, BLE_PT3_uuid_Rx, BLE_PT4_uuid_Rx, BLE_MAV_uuid_Rx, BLE_SV_uuid_Rx, BLE_FM_uuid_Rx, BLE_PT_uuid_Rx]
         BLE_uuid_tx += [BLE_Lat_uuid_Tx, BLE_Long_uuid_Tx, BLE_PT3_uuid_Tx, BLE_PT4_uuid_Tx, BLE_MAV_uuid_Tx, BLE_SV_uuid_Tx, BLE_FM_uuid_Tx, BLE_PT_uuid_Tx]
         centralManager = CBCentralManager(delegate: self, queue: nil)
@@ -101,13 +105,20 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         addTapGesture(to: mavButton, action: #selector(mavButtonTapped))
         addTapGesture(to: svButton, action: #selector(svButtonTapped))
         addTapGesture(to: distanceButton, action: #selector(distanceButtonTapped))
+        connectStatusLbl.isUserInteractionEnabled = true
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(labelTapped))
+        connectStatusLbl.addGestureRecognizer(tapGesture)
     }
     
     // Helper function to add tap gesture recognizers
     func addTapGesture(to button: UIButton, action: Selector) {
         let tapGesture = UITapGestureRecognizer(target: self, action: action)
         button.addGestureRecognizer(tapGesture)
-        button.isUserInteractionEnabled = true // Enable user interaction
+        button.isUserInteractionEnabled = true
+    }
+    
+    @objc func labelTapped() {
+        disconnectPeripheral()
     }
     
     @objc func fmButtonTapped() {
@@ -392,30 +403,32 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         case BLE_Lat_uuid_Rx:
             if let latValue = Int(receivedString as String) {
                 latitude = latValue
-                renderLoc(currlat: latitude, currlong: longitude)
-                updateDistanceToPin()
                 if (firstRecived) {
+                    renderLoc(currlat: latitude, currlong: longitude)
+                    updateDistanceToPin()
                     let LatDeci=Double(latitude)/1000000
                     let LongDeci=Double(longitude)/1000000
                     coordsLbl.text = "Coordinates: (\(String(format: "%.6f", LatDeci)),\(String(format: "%.6f", LongDeci)))"
                 }
                 else {
                     coordsLbl.text = "Coordinates: N/A"
+                    distanceButton.setTitle("Distance: N/A", for: .normal)
                 }
             }
             else {print("Error with Parsing Latitiude")}
         case BLE_Long_uuid_Rx:
             if let longValue = Int(receivedString as String) {
                 longitude = longValue
-                renderLoc(currlat: latitude, currlong: longitude)
-                updateDistanceToPin()
                 if (firstRecived) {
+                    renderLoc(currlat: latitude, currlong: longitude)
+                    updateDistanceToPin()
                     let LatDeci=Double(latitude)/1000000
                     let LongDeci=Double(longitude)/1000000
                     coordsLbl.text = "Coordinates: (\(String(format: "%.6f", LatDeci)),\(String(format: "%.6f", LongDeci)))"
                 }
                 else {
                     coordsLbl.text = "Coordinates: N/A"
+                    distanceButton.setTitle("Distance: N/A", for: .normal)
                 }
             }
             else {print("Error with Parsing longitude")}
@@ -424,8 +437,27 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if let floatValue = Float(receivedString as String) {
                 // Format the float to 3 decimal places
                 let formattedValue = String(format: "%.3f", floatValue)
-                // Update the button's title
-                pt3Button.setTitle("PT3: \(formattedValue)", for: .normal)
+                if (firstRecived) {
+                    // Update the button's title
+                    pt3Button.setTitle("PT3: \(formattedValue)", for: .normal)
+                    if (mavGlobal && floatValue<=30.0) {
+                        approachCon.setTitle("Safe to Approch: Yes", for: .normal)
+                        approachCon.tintColor = UIColor.green
+                    }
+                    else if (floatValue<=30.0) {
+                        approachCon.setTitle("Safe to Approch: With Caution", for: .normal)
+                        approachCon.tintColor = UIColor.yellow
+                    }
+                    
+                    else {
+                        approachCon.setTitle("Safe to Approch: No", for: .normal)
+                        approachCon.tintColor = UIColor.red
+                    }
+                }
+                else {
+                    // Update the button's title
+                    pt3Button.setTitle("PT3: N/A", for: .normal)
+                }
             } else {
                 // Handle the case where the string cannot be converted to a Float
                 pt3Button.setTitle("PT3: Invalid Value", for: .normal)
@@ -436,7 +468,14 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 // Format the float to 3 decimal places
                 let formattedValue = String(format: "%.3f", floatValue)
                 // Update the button's title
-                pt4Button.setTitle("PT4: \(formattedValue)", for: .normal)
+                if (firstRecived) {
+                    // Update the button's title
+                    pt4Button.setTitle("PT4: \(formattedValue)", for: .normal)
+                }
+                else {
+                    // Update the button's title
+                    pt4Button.setTitle("PT4: N/A", for: .normal)
+                }
             } else {
                 // Handle the case where the string cannot be converted to a Float
                 pt4Button.setTitle("PT4: Invalid Value", for: .normal)
@@ -445,8 +484,19 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
             if let intValue = Int(receivedString as String) {
                 // Map 1 to "Open" and 0 to "Close"
                 let status = (intValue == 1) ? "Opened" : "Closed"
+                if status == "Opened" {
+                    mavGlobal=true
+                }
+                else if status == "Closed" {
+                    mavGlobal=false
+                }
                 // Update the button's title
-                mavButton.setTitle("MAV: \(status)", for: .normal)
+                if (firstRecived) {
+                    mavButton.setTitle("MAV: \(status)", for: .normal)
+                }
+                else {
+                    mavButton.setTitle("MAV: N/A", for: .normal)
+                }
             } else {
                 // Handle the case where the string cannot be converted to an Int
                 mavButton.setTitle("MAV: Invalid Value", for: .normal)
@@ -456,27 +506,37 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 // Map 1 to "Open" and 0 to "Close"
                 let status = (intValue == 1) ? "Opened" : "Closed"
                 // Update the button's title
-                svButton.setTitle("SV: \(status)", for: .normal)
+                if (firstRecived) {
+                    svButton.setTitle("SV: \(status)", for: .normal)
+                }
+                else {
+                    svButton.setTitle("SV: N/A", for: .normal)
+                }
             } else {
                 // Handle the case where the string cannot be converted to an Int
                 svButton.setTitle("SV: Invalid Value", for: .normal)
             }
         case BLE_FM_uuid_Rx:
             if let intValue = Int(receivedString as String) {
-                switch intValue
-                {
-                case 0:
-                    fmButton.setTitle("FM: Startup", for: .normal)
-                case 1:
-                    fmButton.setTitle("FM: Standbye", for: .normal)
-                case 2:
-                    fmButton.setTitle("FM: Ascent", for: .normal)
-                case 3:
-                    fmButton.setTitle("FM: Drogue Deployed", for: .normal)
-                case 4:
-                    fmButton.setTitle("FM: Main Deployed", for: .normal)
-                default:
-                    fmButton.setTitle("FM: Invalid", for: .normal)
+                if firstRecived {
+                    switch intValue
+                    {
+                    case 0:
+                        fmButton.setTitle("FM: Startup", for: .normal)
+                    case 1:
+                        fmButton.setTitle("FM: Standbye", for: .normal)
+                    case 2:
+                        fmButton.setTitle("FM: Ascent", for: .normal)
+                    case 3:
+                        fmButton.setTitle("FM: Drogue Deployed", for: .normal)
+                    case 4:
+                        fmButton.setTitle("FM: Main Deployed", for: .normal)
+                    default:
+                        fmButton.setTitle("FM: Invalid", for: .normal)
+                    }
+                }
+                else {
+                    fmButton.setTitle("FM: N/A", for: .normal)
                 }
             }
             else {fmButton.setTitle("FM: Invalid", for: .normal)}
@@ -487,6 +547,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
                 else if (intValue < 300) {
                     firstRecived = true
+                    if (test) {
+                        refreshBtnClicked()
+                        test=false
+                    }
                     ptLbl.text = "Time Since The Last Packet: " + (receivedString as String)
                     let LatDeci=Double(latitude)/1000000
                     let LongDeci=Double(longitude)/1000000
@@ -494,6 +558,10 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
                 }
                 else {
                     firstRecived = true
+                    if (test) {
+                        refreshBtnClicked()
+                        test=false
+                    }
                     ptLbl.text = "Time Since The Last Packet: > 5 Minutes"}
             } else {
                 // Handle the case where the string cannot be converted to an Int
@@ -648,6 +716,28 @@ class ViewController: UIViewController, CBCentralManagerDelegate, CBPeripheralDe
         
         
         self.present(MapStoryboard, animated: true, completion: nil)
+    }
+    
+    func disconnectPeripheral() {
+        // Check if there's an active peripheral connection
+        guard let peripheral = curPeripheral else {
+            print("No peripheral is connected")
+            return
+        }
+        
+        // Cancel the connection
+        centralManager.cancelPeripheralConnection(peripheral)
+        print("Disconnected from peripheral: \(peripheral.name ?? "Unknown")")
+        
+        // Update UI to reflect disconnection
+        connectStatusLbl.text = "Disconnected"
+        connectStatusLbl.textColor = .red
+        ptLbl.text = ""
+        
+        // Clear cached data (optional)
+        rxCharacteristics.removeAll()
+        txCharacteristics.removeAll()
+        peripheralList.removeAll()
     }
 }
 
