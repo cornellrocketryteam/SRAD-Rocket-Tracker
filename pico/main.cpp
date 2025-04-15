@@ -26,14 +26,14 @@
 static btstack_packet_callback_registration_t hci_event_callback_registration;
 
 // Buffers for sending the values as byte arrays
-char lat_bytes[100]; 
-char long_bytes[100];
-char PT3_bytes[100]; 
-char PT4_bytes[100]; 
-char MAV_bytes[100]; 
-char SV_bytes[100];
-char FM_bytes[100];
-char PT_bytes[100];
+char lat_bytes[64]; 
+char long_bytes[64];
+char PT3_bytes[64]; 
+char PT4_bytes[64]; 
+char MAV_bytes[64]; 
+char SV_bytes[64];
+char FM_bytes[64];
+char PT_bytes[64];
 bool recived_first = false;
 
 bool getBit(uint16_t metadata, int position) // position in range 0-15
@@ -69,8 +69,6 @@ int main() {
         // TODO: report radio failing
         return 1;
     }
-
-    // Telemetry telemetry;
 
     sleep_ms(10000);
     // Initialise the Wi-Fi/BLE chip
